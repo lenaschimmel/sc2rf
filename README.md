@@ -32,7 +32,7 @@ python3 search_recombinants.py
 # Interpreting the output
 _To be written..._
 
-Some example output (based on Sequences published by the [German Rober-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland)):
+Some example output (based on Sequences published by the [German Robert-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland)):
 
 <img width="1110" alt="Screenshot of the terminal output of this program" src="https://user-images.githubusercontent.com/1325019/156946733-cdc025d7-869a-4ce6-b1b7-62b0d1a30bac.png">
 

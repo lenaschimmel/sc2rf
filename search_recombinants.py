@@ -37,15 +37,25 @@ def main():
     print("Done.\nReading actual input.")
     all_samples = read_subs('sample.ssv', ';')
     print("Done.")
-    
-    calculate_relations(all_examples)
+
+    # The current algorithm relies on "uniqu mutations", that is, those which only occur in one of
+    # the example clades. Having to many similar clades reduces the number of unique mutations
+    # too much to be useful.
+    # As a quick fix, let's filter the examples to a much smaller list:
+    used_clades = ['20I','20H','20J','21A','21K','21L']
+    used_examples = dict()
+    for ex_name, ex in all_examples.items():
+        if ex_name in used_clades:
+            used_examples[ex_name] = ex
+
+    calculate_relations(used_examples)
 
     match_sets = dict()
 
     print("Scanning input for matches against linege definitons...")
     for sa_name, sa in all_samples.items():
         matching_example_names = []
-        for ex_name, ex in all_examples.items():
+        for ex_name, ex in used_examples.items():
             matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
             #print(f"    {matches_count}")
             #matches_percent = int(matches_count / len(ex['unique_subs_set']) * 100)
@@ -64,7 +74,7 @@ def main():
     print("Done.\nPriniting detailed analysis:\n\n")
 
     for example_names, samples in match_sets.items():
-        show_matches(all_examples, example_names, samples)
+        show_matches(used_examples, example_names, samples)
 
 def pretty_name(clade_name):
     global mappings
@@ -314,7 +324,7 @@ def show_matches(all_examples, example_names, samples):
 
         # now transform definitive streaks: every sequence like ..., X, S, Y, ... where S is a small numer into ..., (X+Y), ...
 
-        min_streak_length = 2
+        min_streak_length = 3
 
         reduced = list(filter(lambda ex_count: ex_count[1] >= min_streak_length, definitives_count))
         removed = len(definitives_count) - len(reduced)
@@ -337,10 +347,10 @@ def show_matches(all_examples, example_names, samples):
         if removed:
             prunt(f", ignored {removed} streaks < {min_streak_length}")
 
-        # if len(further_reduced) > 4:# or len(further_reduced) == 1:
-        #     print("\x0D\x1B[2K", end="") # remove the whole line which we just printed
-        # else:
-        print()
+        if len(further_reduced) > 5 or len(further_reduced) == 1:
+            print("\x0D\x1B[2K", end="") # remove the whole line which we just printed
+        else:
+            print()
     
     print()
 
@@ -404,7 +414,7 @@ def calculate_relations(examples):
             if other is not example:
                 union = union | (other['subs_set'])
         example['unique_subs_set'] = example['subs_set'] - union
-        #print(f"Unique in {example['name']}: {example['subs_set']}")
+        print(f"Clade  {pretty_name(example['name'])} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
 
 if __name__ == '__main__':
     main()

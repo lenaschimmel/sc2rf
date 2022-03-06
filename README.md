@@ -12,7 +12,11 @@ Start with a `.fasta` file with one or more sequences which might contain recomb
 Currently, you need to run your sequences through Nextclade before sarscov2recombinants can use them. This preparation step will probably become unnecessary very soon, so that you will not need the Nextclade software at all.
 
 ```bash
-nextclade --in-order --input-fasta sample.fasta --input-dataset path/to/your/datasets/sars-cov-2  --output-dir nextclade-output/  --output-csv sample.ssv --verbose
+nextclade --in-order \
+  --input-fasta sample.fasta \
+  --input-dataset path/to/your/datasets/sars-cov-2 \
+  --output-dir nextclade-output/  \
+  --output-csv sample.ssv --verbose
 ```
 
 The only file we need is `sample.ssv`. Note how the file is name `.ssv` because it is separated by semicolons, although the option is called `--output-csv`. You can delete everything inside `nextclade-output/` if you want.
@@ -24,7 +28,7 @@ python3 search_recombinants.py
 ```
 
 # Source material
-I used the following files from Nextclade / Nextstrain:
+I used the following files from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files):
  * `virus_properties.json`
  * `reference.fasta`
 

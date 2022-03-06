@@ -6,6 +6,8 @@ This program can search genome sequences of SARS-CoV-2 for potential recombinant
 # Requirements and Installation
 You need at least Python 3.6 and you need to install the requirements first. You might use somethink like `pip3 install -r requirements.txt` to do that.
 
+Also, you need a terminal which supports ANSI control sequences. On Linux, MacOS, etc. it should probably work. On Windows, you need a recent version of Windows 10 and you run the script from `cmd.exe`. See [this table](https://pypi.org/project/termcolor/) for details.
+
 # Usage
 Start with a `.fasta` file with one or more sequences which might contain recombinants.
 
@@ -26,6 +28,14 @@ Then run this script, like this:
 ```bash
 python3 search_recombinants.py
 ```
+
+# Interpreting the output
+_To be written..._
+
+Some example output (based on Sequences published by the [German Rober-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland)):
+
+<img width="1110" alt="Screenshot of the terminal output of this program" src="https://user-images.githubusercontent.com/1325019/156946733-cdc025d7-869a-4ce6-b1b7-62b0d1a30bac.png">
+
 
 # Source material
 I used the following files from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files):

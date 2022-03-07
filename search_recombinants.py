@@ -3,6 +3,7 @@ from typing import NamedTuple
 from termcolor import colored, cprint
 import fileinput
 import json
+import sys
 
 from xarray import Coordinate
 
@@ -34,11 +35,11 @@ def main():
     reference = read_fasta('reference.fasta')['MN908947 (Wuhan-Hu-1/2019)']
     all_examples = read_examples('virus_properties.json')
 
-    print("Done.\nReading actual input.")
-    all_samples = read_subs('sample.ssv', ';')
+    print("Done.\nReading actual input.")s
+    all_samples = read_subs_from_fasta('sample.fasta')
     print("Done.")
 
-    # The current algorithm relies on "uniqu mutations", that is, those which only occur in one of
+    # The current algorithm relies on "unique mutations", that is, those which only occur in one of
     # the example clades. Having to many similar clades reduces the number of unique mutations
     # too much to be useful.
     # As a quick fix, let's filter the examples to a much smaller list:
@@ -128,6 +129,40 @@ def read_fasta(path):
                 sequences[current_name] += line.strip()
 
     return sequences;
+
+def read_subs_from_fasta(path):
+    fastas = read_fasta(path)
+    sequences = dict()
+    start_n = -1
+    for name, fasta in fastas.items():
+        subs_dict = dict()
+        missings = list()
+        if len(fasta) != len(reference):
+            print(f"Sequence {name} not properly aligned, length is {len(fasta)} instead of {len(reference)}.")
+        else:
+            for i in range(1, len(reference) + 1):
+                r = reference[i - 1]
+                s = fasta[i - 1]
+                if s == 'N':
+                    if start_n == -1:
+                        start_n = i
+                elif start_n >= 0:
+                    missings.append((start_n, i - 1))
+                    start_n = -1
+                    
+                if s != 'N' and r != s:
+                    subs_dict[i] = Sub(r, i, s)
+                    
+
+            sequences[name] = {
+                'name': name,
+                'subs_dict': subs_dict,
+                'subs_list': list(subs_dict.values()),
+                'subs_set': set(subs_dict.values()),
+                'missings': missings
+            }
+
+    return sequences
 
 class Sub(NamedTuple):
     ref: str

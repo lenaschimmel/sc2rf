@@ -9,21 +9,13 @@ You need at least Python 3.6 and you need to install the requirements first. You
 Also, you need a terminal which supports ANSI control sequences. On Linux, MacOS, etc. it should probably work. On Windows, you need a recent version of Windows 10 and you run the script from `cmd.exe`. See [this table](https://pypi.org/project/termcolor/) for details.
 
 # Usage
-Start with a `.fasta` file with one or more sequences which might contain recombinants.
+Start with a `sample.fasta` file with one or more sequences which might contain recombinants. (Of course, future versions will allow you to name your input file however you like, etc.) Your sequences have to be aligned to the `reference.fasta`. If they are not, you will get an error message like:
 
-Currently, you need to run your sequences through Nextclade before sarscov2recombinants can use them. This preparation step will probably become unnecessary very soon, so that you will not need the Nextclade software at all.
+> Sequence hCoV-19/Phantasialnd/EFWEFWD not properly aligned, length is 29718 instead of 29903.
 
-```bash
-nextclade --in-order \
-  --input-fasta sample.fasta \
-  --input-dataset path/to/your/datasets/sars-cov-2 \
-  --output-dir nextclade-output/  \
-  --output-csv sample.ssv --verbose
-```
+_(For historical reasons, I always used [Nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) to get aligned sequences, but you might also use [Nextalign](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html) or any other tool.)_
 
-The only file we need is `sample.ssv`. Note how the file is name `.ssv` because it is separated by semicolons, although the option is called `--output-csv`. You can delete everything inside `nextclade-output/` if you want.
-
-Then run this script, like this:
+Run this script, like:
 
 ```bash
 python3 search_recombinants.py
@@ -49,7 +41,7 @@ The initial version of this program was written in cooperation with [@flauschzel
 # TODO
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)
  * [X] don't use sequences as examples - use the lineage defintions from a json file instead
- * [ ] accept aligned fasta 
+ * [X] accept aligned fasta 
    * [ ] as input file
    * [ ] as piped stream
  * [ ] If we still accept csv/ssv input, autodetect the delimiter either by file name or by analysing the first line

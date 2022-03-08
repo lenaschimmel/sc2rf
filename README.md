@@ -26,8 +26,9 @@ You can execute `search_recombinants.py -h` to get a help message like this one,
 
 ```
 usage: search_recombinants.py [-h] [--parents INTERVAL] [--breakpoints INTERVAL]
-                              [--clades [{all,20I,20H,20J,21A,21I,21J,21B,21C,21D,21F,21G,21H,21K,21L,21M,20E,20B/S:732A,20A/S:126A,20A.EU2,20A/S:439K,20A/S:98F,20C/S:80Y,20B/S:626S,20B/S:1122L} ...]]
+                              [--clades [{all,20I,20H,20J,21A,21I,21J,21B,21C,21D,...} ...]]
                               [--unique NUM] [--max-intermission-length NUM] [--max-intermission-count NUM]
+                              [--max_name_length NUM]
                               input [input ...]
 
 Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.
@@ -40,16 +41,24 @@ optional arguments:
   --parents INTERVAL    Allowed umber of potential parents of a recombinant. Interval (see below).
   --breakpoints INTERVAL
                         Allowed number of breakpoints in a recombinant. Interval (see below).
-  --clades [{all,20I,20H,20J,21A,21I,21J,21B,21C,21D,21F,21G,21H,21K,21L,21M,20E,20B/S:732A,20A/S:126A,20A.EU2,20A/S:439K,20A/S:98F,20C/S:80Y,20B/S:626S,20B/S:1122L} ...]
-                        List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".
-  --unique NUM          Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.
+  --clades [{all,20I,20H,20J,21A,21I,21J,21B,21C,21D,...} ...]
+                        List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A".
+                        Also accepts "all".
+  --unique NUM          Minimum of substitutions in a sample which are unique to a potential parent clade, so that
+                        the clade will be considered.
   --max-intermission-length NUM, -l NUM
-                        The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.
+                        The maximum length of an intermission in consecutive substitutions. Intermissions are
+                        stretches to be ignored when counting breakpoints.
   --max-intermission-count NUM, -m NUM
-                        The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.
+                        The maximum number of intermissions which will be ignored. Surplus intermissions count
+                        towards the number of breakpoints.
+  --max_name_length NUM, -n NUM
+                        Only show up to NUM characters of sample names.
 
-An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7"). The limts are inclusive. Only positive numbers are supported.
+An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7"). The limts are
+inclusive. Only positive numbers are supported.
 ```
+
 # Interpreting the output
 _To be written..._
 

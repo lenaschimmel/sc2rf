@@ -184,14 +184,14 @@ def read_subs_from_fasta(path):
             for i in range(1, len(reference) + 1):
                 r = reference[i - 1]
                 s = fasta[i - 1]
-                if s == 'N':
+                if s == 'N' or s == '-':
                     if start_n == -1:
                         start_n = i
                 elif start_n >= 0:
                     missings.append((start_n, i - 1))
                     start_n = -1
                     
-                if s != 'N' and r != s:
+                if s != 'N' and s != '-' and r != s:
                     subs_dict[i] = Sub(r, i, s)
                     
 

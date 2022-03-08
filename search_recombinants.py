@@ -1,9 +1,12 @@
+#!/usr/bin/env python3
+
 import csv
 from typing import NamedTuple
+from numpy import int0
 from termcolor import colored, cprint
 import fileinput
 import json
-import sys
+import argparse
 
 from xarray import Coordinate
 
@@ -27,23 +30,61 @@ genes = {
     '': (29534, 99999), # probably nothing, but need something to mark the end of N
 }
 
+class Interval:
+    def __init__(self, string):
+        # TODO allow multiple separators, see https://stackoverflow.com/questions/1059559/split-strings-into-words-with-multiple-word-boundary-delimiters
+        parts = string.split('-')
+        if len(parts) == 1:
+            self.min = int(parts[0])
+            self.max = int(parts[0])
+        elif len(parts) == 2:
+            self.min = int(parts[0]) if parts[0] else None
+            self.max = int(parts[1]) if parts[1] else None
+        else:
+            raise ValueError('invalid interval: ' + string)
+
+    def matches(self, num):
+        return num >= self.min and num <= self.max
+
+
 def main():
-    global reference
     global mappings
-    print("Reading name mappings, reference genome, lineage definitions...")
     mappings = read_mappings('mapping.csv')
+    clade_names = list(mappings['by_clade'].keys())
+
+    parser = argparse.ArgumentParser(description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', epilog='An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7"). The limts are inclusive. Only positive numbers are supported.')
+    parser.add_argument('input', nargs='+', help='input sequences to test, as aligned .fasta file(s)')
+    parser.add_argument('--parents', default='2-3', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant. Interval (see below).')
+    parser.add_argument('--breakpoints', default='1-5',  metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant. Interval (see below).')
+    parser.add_argument('--clades', nargs='*', default=['20I','20H','20J','21A','21K','21L'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
+    parser.add_argument('--unique', default=1, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
+    parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=1, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
+    parser.add_argument('--max-intermission-count', '-m',  metavar='NUM', default=10, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
+    parser.add_argument('--max_name_length', '-n',  metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
+    
+
+    global args
+    args = parser.parse_args()
+
+    global reference
+    print("Reading reference genome, lineage definitions...")
     reference = read_fasta('reference.fasta')['MN908947 (Wuhan-Hu-1/2019)']
     all_examples = read_examples('virus_properties.json')
 
-    print("Done.\nReading actual input.")s
-    all_samples = read_subs_from_fasta('sample.fasta')
+    print("Done.\nReading actual input.")
+    all_samples = dict()
+    for path in args.input:
+        read_samples = read_subs_from_fasta(path)
+        all_samples = all_samples | read_samples
     print("Done.")
 
     # The current algorithm relies on "unique mutations", that is, those which only occur in one of
     # the example clades. Having to many similar clades reduces the number of unique mutations
     # too much to be useful.
     # As a quick fix, let's filter the examples to a much smaller list:
-    used_clades = ['20I','20H','20J','21A','21K','21L']
+    used_clades = args.clades
+    if used_clades == ['all']:
+        used_clades = clade_names
     used_examples = dict()
     for ex_name, ex in all_examples.items():
         if ex_name in used_clades:
@@ -60,12 +101,12 @@ def main():
             matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
             #print(f"    {matches_count}")
             #matches_percent = int(matches_count / len(ex['unique_subs_set']) * 100)
-            if matches_count > 0: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
+            if matches_count >= args.unique: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
                 matching_example_names.append(ex_name)# f"  Unique {ex_name}: {matches_percent}% ({matches_count} of {len(ex['unique_subs_set'])})")
 
         matching_examples_tup = tuple(matching_example_names)
 
-        if len(matching_example_names) > 1:
+        if args.parents.matches(len(matching_example_names)):
             #print(f"{sa_name} is a possible recombinant of {len(matching_example_names)} lineages: {matching_example_names}")
             if match_sets.get(matching_examples_tup):
                 match_sets[matching_examples_tup].append(sa)
@@ -188,7 +229,7 @@ def fixed_len(s, l):
     return trunc.ljust(l)
 
 def show_matches(all_examples, example_names, samples):
-    ml = 52
+    ml = args.max_name_length
 
     examples = [all_examples[name] for name in example_names]
 
@@ -359,10 +400,8 @@ def show_matches(all_examples, example_names, samples):
 
         # now transform definitive streaks: every sequence like ..., X, S, Y, ... where S is a small numer into ..., (X+Y), ...
 
-        min_streak_length = 3
-
-        reduced = list(filter(lambda ex_count: ex_count[1] >= min_streak_length, definitives_count))
-        removed = len(definitives_count) - len(reduced)
+        reduced = list(filter(lambda ex_count: ex_count[1] > args.max_intermission_length, definitives_count))
+        num_intermissions = len(definitives_count) - len(reduced)
         further_reduced = []
 
         last_ex = reduced[0][0];
@@ -377,12 +416,19 @@ def show_matches(all_examples, example_names, samples):
 
         if last_count:
             further_reduced.append(last_count)
-        
-        prunt(f"     {len(further_reduced) - 1} breakpoint(s)")
-        if removed:
-            prunt(f", ignored {removed} streaks < {min_streak_length}")
 
-        if len(further_reduced) > 5 or len(further_reduced) == 1:
+        postfix = ''
+        num_breakpoints = len(further_reduced) - 1
+        if num_intermissions > args.max_intermission_count:
+            postfix = ' of ' + str(num_intermissions)
+            breakpoints += (num_intermissions - args.max_intermission_count) * 2
+            num_intermissions = args.max_intermission_count
+
+        prunt(f"     {num_breakpoints} breakpoint(s)")
+        if num_intermissions:
+            prunt(f", ignored {num_intermissions}{postfix} intermissions <= {args.max_intermission_length}")
+
+        if not args.breakpoints.matches(num_breakpoints):
             print("\x0D\x1B[2K", end="") # remove the whole line which we just printed
         else:
             print()

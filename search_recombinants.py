@@ -59,19 +59,26 @@ def main():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument('input', nargs='+', help='input sequences to test, as aligned .fasta file(s)')
-    parser.add_argument('--parents', '-p', default='2-3', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant.')
-    parser.add_argument('--breakpoints', '-b', default='1-5',  metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
+    parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant.')
+    parser.add_argument('--breakpoints', '-b', default='1-4',  metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
     parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A','21K','21L'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
-    parser.add_argument('--unique', '-u', default=1, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
-    parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=1, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
-    parser.add_argument('--max-intermission-count', '-m',  metavar='NUM', default=10, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
+    parser.add_argument('--unique', '-u', default=2, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
+    parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
+    parser.add_argument('--max-intermission-count', '-i',  metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
     parser.add_argument('--max-name-length', '-n',  metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
-    parser.add_argument('--max-ambiguous', '-a',  metavar='NUM', default=30, type=int, help='Maximum number of ambiguous nucs in a sample before it gets ignored.')
+    parser.add_argument('--max-ambiguous', '-a',  metavar='NUM', default=50, type=int, help='Maximum number of ambiguous nucs in a sample before it gets ignored.')
     parser.add_argument('--force-all-parents', '-f', action='store_true', help='Force to consider all clades as potential parents for all sequences. Only useful for debugging.')
-    
 
     global args
     args = parser.parse_args()
+
+    used_clades = args.clades
+    if used_clades == ['all']:
+        used_clades = clade_names
+
+    if args.force_all_parents and not args.parents.match(len(used_clades)):
+        print("The number of allowed parents, the number of selected clades and the --force-all-parents conflict so that the results must be empty.")
+        return
 
     global reference
     print("Reading reference genome, lineage definitions...")
@@ -85,13 +92,8 @@ def main():
         all_samples = all_samples | read_samples
     print("Done.")
 
-    # The current algorithm relies on "unique mutations", that is, those which only occur in one of
-    # the example clades. Having to many similar clades reduces the number of unique mutations
-    # too much to be useful.
-    # As a quick fix, let's filter the examples to a much smaller list:
-    used_clades = args.clades
-    if used_clades == ['all']:
-        used_clades = clade_names
+
+
     used_examples = dict()
     for ex_name, ex in all_examples.items():
         if ex_name in used_clades:

@@ -66,6 +66,7 @@ def main():
     parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=1, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
     parser.add_argument('--max-intermission-count', '-m',  metavar='NUM', default=10, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
     parser.add_argument('--max_name_length', '-n',  metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
+    parser.add_argument('--force-all-parents', '-f', action='store_true', help='Force to consider all clades as potential parents for all sequences. Only useful for debugging.')
     
 
     global args
@@ -102,12 +103,15 @@ def main():
     print("Scanning input for matches against linege definitons...")
     for sa_name, sa in all_samples.items():
         matching_example_names = []
-        for ex_name, ex in used_examples.items():
-            matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
-            #print(f"    {matches_count}")
-            #matches_percent = int(matches_count / len(ex['unique_subs_set']) * 100)
-            if matches_count >= args.unique: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
-                matching_example_names.append(ex_name)# f"  Unique {ex_name}: {matches_percent}% ({matches_count} of {len(ex['unique_subs_set'])})")
+        if args.force:
+            matching_example_names = used_examples.keys()
+        else:    
+            for ex_name, ex in used_examples.items():
+                matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
+                matches_percent = int(matches_count / len(ex['unique_subs_set']) * 100)
+                #print(f"  Unique {ex_name}: {matches_percent}% ({matches_count} of {len(ex['unique_subs_set'])})")
+                if matches_count >= args.unique: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
+                    matching_example_names.append(ex_name)# 
 
         matching_examples_tup = tuple(matching_example_names)
 
@@ -280,7 +284,7 @@ def show_matches(all_examples, example_names, samples):
 
     current_name = ''
     color_index = 0
-    current_color = colors[color_index]
+    current_color = get_color(color_index)
     text_index = 0
 
     for coord in ordered_coords:
@@ -288,8 +292,8 @@ def show_matches(all_examples, example_names, samples):
             if coord >= limits[0] and coord <= limits[1]:
                 if current_name != name:
                     current_name = name
-                    color_index = (color_index + 1) % len(colors)
-                    current_color = colors[color_index]
+                    color_index += 1
+                    current_color = get_color(color_index)
                     text_index = 0
         char = ' '
         if len(current_name) > text_index:
@@ -312,7 +316,7 @@ def show_matches(all_examples, example_names, samples):
     color_by_name = dict()
 
     for ex in examples:
-        current_color = colors[color_index]
+        current_color = get_color(color_index)
         color_by_name[ex['name']] = current_color
         prunt(fixed_len(pretty_name(ex['name']), ml) + ' ', current_color)
         for coord in ordered_coords:
@@ -328,7 +332,7 @@ def show_matches(all_examples, example_names, samples):
     current_color = 'grey'
 
     for sa in samples:
-        #current_color = colors[color_index]
+        #current_color = get_color(color_index)
         #color_by_name[sa['name']] = current_color
 
         prev_definitive_match = None
@@ -439,6 +443,9 @@ def show_matches(all_examples, example_names, samples):
             print()
     
     print()
+
+def get_color(color_index): 
+    return colors[color_index % len(colors)]
 
 def read_mappings(path):
     with open(path, newline='') as csvfile:

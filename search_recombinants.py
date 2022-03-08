@@ -65,7 +65,8 @@ def main():
     parser.add_argument('--unique', '-u', default=1, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
     parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=1, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
     parser.add_argument('--max-intermission-count', '-m',  metavar='NUM', default=10, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
-    parser.add_argument('--max_name_length', '-n',  metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
+    parser.add_argument('--max-name-length', '-n',  metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
+    parser.add_argument('--max-ambiguous', '-a',  metavar='NUM', default=30, type=int, help='Maximum number of ambiguous nucs in a sample before it gets ignored.')
     parser.add_argument('--force-all-parents', '-f', action='store_true', help='Force to consider all clades as potential parents for all sequences. Only useful for debugging.')
     
 
@@ -184,12 +185,14 @@ def read_subs_from_fasta(path):
     fastas = read_fasta(path)
     sequences = dict()
     start_n = -1
+    removed_due_to_ambig = 0
     for name, fasta in fastas.items():
         subs_dict = dict()
         missings = list()
         if len(fasta) != len(reference):
             print(f"Sequence {name} not properly aligned, length is {len(fasta)} instead of {len(reference)}.")
         else:
+            ambiguous_count = 0
             for i in range(1, len(reference) + 1):
                 r = reference[i - 1]
                 s = fasta[i - 1]
@@ -202,15 +205,22 @@ def read_subs_from_fasta(path):
                     
                 if s != 'N' and s != '-' and r != s:
                     subs_dict[i] = Sub(r, i, s)
-                    
 
-            sequences[name] = {
-                'name': name,
-                'subs_dict': subs_dict,
-                'subs_list': list(subs_dict.values()),
-                'subs_set': set(subs_dict.values()),
-                'missings': missings
-            }
+                if not s in "AGTCN-":
+                    ambiguous_count += 1
+
+            if ambiguous_count <= args.max_ambiguous:
+                sequences[name] = {
+                    'name': name,
+                    'subs_dict': subs_dict,
+                    'subs_list': list(subs_dict.values()),
+                    'subs_set': set(subs_dict.values()),
+                    'missings': missings
+                }
+            else:
+                removed_due_to_ambig += 1
+    if removed_due_to_ambig:
+        print(f"Removed {removed_due_to_ambig} of {len(fastas)} sequences with more than { args.max_ambiguous} ambiguous nucs.")
 
     return sequences
 

@@ -52,10 +52,15 @@ def main():
     mappings = read_mappings('mapping.csv')
     clade_names = list(mappings['by_clade'].keys())
 
-    parser = argparse.ArgumentParser(description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', epilog='An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7"). The limts are inclusive. Only positive numbers are supported.')
+    parser = argparse.ArgumentParser(
+        description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', 
+        epilog='An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7").'
+        ' The limts are inclusive. Only positive numbers are supported.',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument('input', nargs='+', help='input sequences to test, as aligned .fasta file(s)')
-    parser.add_argument('--parents', '-p', default='2-3', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant. Interval (see below).')
-    parser.add_argument('--breakpoints', '-b', default='1-5',  metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant. Interval (see below).')
+    parser.add_argument('--parents', '-p', default='2-3', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant.')
+    parser.add_argument('--breakpoints', '-b', default='1-5',  metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
     parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A','21K','21L'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
     parser.add_argument('--unique', '-u', default=1, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
     parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=1, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')

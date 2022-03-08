@@ -4,7 +4,7 @@ This program can search genome sequences of SARS-CoV-2 for potential recombinant
 **The initial version of this program has been written as a quick-and-dirty proof-of-concept and needs a lot of cleanup.**
 
 # Requirements and Installation
-You need at least Python 3.6 and you need to install the requirements first. You might use somethink like `pip3 install -r requirements.txt` to do that.
+You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
 
 Also, you need a terminal which supports ANSI control sequences. On Linux, MacOS, etc. it should probably work. On Windows, you need a recent version of Windows 10 and you run the script from `cmd.exe`. See [this table](https://pypi.org/project/termcolor/) for details.
 

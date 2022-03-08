@@ -103,7 +103,7 @@ def main():
     print("Scanning input for matches against linege definitons...")
     for sa_name, sa in all_samples.items():
         matching_example_names = []
-        if args.force:
+        if args.force_all_parents:
             matching_example_names = used_examples.keys()
         else:    
             for ex_name, ex in used_examples.items():

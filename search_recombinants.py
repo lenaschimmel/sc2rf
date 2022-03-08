@@ -224,7 +224,7 @@ def parse_sub(s):
 
 def parse_short_sub(s):
     coordinate = int(s[0:-1])
-    return Sub(reference[coordinate], coordinate, s[-1])
+    return Sub(reference[coordinate-1], coordinate, s[-1])
 
 
 def prunt(s, color=None):

@@ -340,10 +340,12 @@ def show_matches(all_examples, example_names, samples):
         definitives_since_breakpoint = 0
         definitives_count = []
 
-        prunt(fixed_len(sa['name'], ml) + ' ', current_color)
+        output = ''
+
+        output += colored(fixed_len(sa['name'], ml) + ' ', current_color)
         for coord in ordered_coords:
             if is_missing(coord, sa['missings']):
-                cprint('N', 'white', attrs=['reverse'], end='')
+                output += colored('N', 'white', attrs=['reverse'])
             else:
                 if(sa['subs_dict'].get(coord)): # sample has sub here
                     matching_exs = []
@@ -373,7 +375,7 @@ def show_matches(all_examples, example_names, samples):
                          attrs = ['bold', 'underline']
                     # else: all examples match
 
-                    cprint(text, fg, bg, attrs=attrs, end='')
+                    output += colored(text, fg, bg, attrs=attrs)
                 else: # sample does not have sub here
                     matching_exs = []
                     for ex in examples:
@@ -403,7 +405,7 @@ def show_matches(all_examples, example_names, samples):
                          attrs = ['underline']
                     # else: all examples match (which should not happen, because some example must have a mutation here)
                     
-                    cprint(text, fg, bg, attrs=attrs, end='')
+                    output += colored(text, fg, bg, attrs=attrs)
         if definitives_since_breakpoint:
             definitives_count.append((prev_definitive_match,definitives_since_breakpoint))
 
@@ -413,34 +415,32 @@ def show_matches(all_examples, example_names, samples):
         num_intermissions = len(definitives_count) - len(reduced)
         further_reduced = []
 
-        last_ex = reduced[0][0];
-        last_count = 0
-        for (ex, count) in reduced:
-            if ex != last_ex:
+        if len(reduced):
+            last_ex = reduced[0][0];
+            last_count = 0
+            for (ex, count) in reduced:
+                if ex != last_ex:
+                    further_reduced.append(last_count)
+                    last_count = count
+                    last_ex = ex
+                else:
+                    last_count += count
+            if last_count:
                 further_reduced.append(last_count)
-                last_count = count
-                last_ex = ex
-            else:
-                last_count += count
-
-        if last_count:
-            further_reduced.append(last_count)
 
         postfix = ''
         num_breakpoints = len(further_reduced) - 1
         if num_intermissions > args.max_intermission_count:
             postfix = ' of ' + str(num_intermissions)
-            breakpoints += (num_intermissions - args.max_intermission_count) * 2
+            num_breakpoints += (num_intermissions - args.max_intermission_count) * 2
             num_intermissions = args.max_intermission_count
 
-        prunt(f"     {num_breakpoints} breakpoint(s)")
+        output += f"     {num_breakpoints} breakpoint(s)"
         if num_intermissions:
-            prunt(f", ignored {num_intermissions}{postfix} intermissions <= {args.max_intermission_length}")
+            output += f", ignored {num_intermissions}{postfix} intermissions <= {args.max_intermission_length}"
 
-        if not args.breakpoints.matches(num_breakpoints):
-            print("\x0D\x1B[2K", end="") # remove the whole line which we just printed
-        else:
-            print()
+        if args.breakpoints.matches(num_breakpoints):
+            print(output)
     
     print()
 

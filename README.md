@@ -38,13 +38,14 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  --parents INTERVAL    Allowed umber of potential parents of a recombinant. Interval (see below).
-  --breakpoints INTERVAL
+  --parents, -p INTERVAL
+                        Allowed umber of potential parents of a recombinant. Interval (see below).
+  --breakpoints, -b INTERVAL
                         Allowed number of breakpoints in a recombinant. Interval (see below).
-  --clades [{all,20I,20H,20J,21A,21I,21J,21B,21C,21D,...} ...]
+  --clades, -c [{all,20I,20H,20J,21A,21I,21J,21B,21C,21D,...} ...]
                         List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A".
                         Also accepts "all".
-  --unique NUM          Minimum of substitutions in a sample which are unique to a potential parent clade, so that
+  --unique, -u NUM      Minimum of substitutions in a sample which are unique to a potential parent clade, so that
                         the clade will be considered.
   --max-intermission-length NUM, -l NUM
                         The maximum length of an intermission in consecutive substitutions. Intermissions are

@@ -258,78 +258,15 @@ def show_matches(all_examples, example_names, samples):
     ordered_coords = list(coords)
     ordered_coords.sort()
 
-    print(f"\n\nPotential recombinants between {example_names}:\n")
-   
-    ###### SHOW COORDS
-
-    for exp in range(5,0,-1):
-        div = 10**(exp-1)
-
-        if exp == 5:
-            prunt(fixed_len("coordinates", ml + 1))
-        else:
-            prunt(' ' * (ml+1))
-
-        for coord in ordered_coords:
-            if coord//div > 0:
-                prunt((coord//div)%10)
-            else:
-                prunt(' ')
-            #print(f"{coord} // {div} = {(coord//div)}")
-        print()
-    print()
-
-    ###### SHOW GENES
-    prunt(fixed_len("genes", ml + 1))
-
-    current_name = ''
-    color_index = 0
-    current_color = get_color(color_index)
-    text_index = 0
-
-    for coord in ordered_coords:
-        for name, limits in genes.items():
-            if coord >= limits[0] and coord <= limits[1]:
-                if current_name != name:
-                    current_name = name
-                    color_index += 1
-                    current_color = get_color(color_index)
-                    text_index = 0
-        char = ' '
-        if len(current_name) > text_index:
-            char = current_name[text_index]
-        cprint(char, current_color, None, attrs=['reverse'], end='')
-        text_index += 1
-    print()
-
-    ###### SHOW REF
-    
-    prunt(fixed_len("ref", ml + 1))
-    for coord in ordered_coords:
-        prunt(refs[coord])
-    print()
-    print()
-
-    ###### SHOW EXAMPLES
-
-    color_index = 0
     color_by_name = dict()
-
+    color_index = 0
     for ex in examples:
-        current_color = get_color(color_index)
-        color_by_name[ex['name']] = current_color
-        prunt(fixed_len(pretty_name(ex['name']), ml) + ' ', current_color)
-        for coord in ordered_coords:
-            if(ex['subs_dict'].get(coord)):
-                prunt(ex['subs_dict'][coord].mut, current_color)
-            else:
-                prunt(".")
-        print()
+        color_by_name[ex['name']] = get_color(color_index)
         color_index += 1
-    print()
 
     ###### SHOW SAMPLES
     current_color = 'grey'
+    collected_outputs = []
 
     for sa in samples:
         #current_color = get_color(color_index)
@@ -440,8 +377,78 @@ def show_matches(all_examples, example_names, samples):
             output += f", ignored {num_intermissions}{postfix} intermissions <= {args.max_intermission_length}"
 
         if args.breakpoints.matches(num_breakpoints):
-            print(output)
+            collected_outputs.append(output)
     
+    if len(collected_outputs):
+
+        print(f"\n\nPotential recombinants between {example_names}:\n")
+   
+        ###### SHOW COORDS
+
+        for exp in range(5,0,-1):
+            div = 10**(exp-1)
+
+            if exp == 5:
+                prunt(fixed_len("coordinates", ml + 1))
+            else:
+                prunt(' ' * (ml+1))
+
+            for coord in ordered_coords:
+                if coord//div > 0:
+                    prunt((coord//div)%10)
+                else:
+                    prunt(' ')
+                #print(f"{coord} // {div} = {(coord//div)}")
+            print()
+        print()
+
+        ###### SHOW GENES
+        prunt(fixed_len("genes", ml + 1))
+
+        current_name = ''
+        color_index = 0
+        current_color = get_color(color_index)
+        text_index = 0
+
+        for coord in ordered_coords:
+            for name, limits in genes.items():
+                if coord >= limits[0] and coord <= limits[1]:
+                    if current_name != name:
+                        current_name = name
+                        color_index += 1
+                        current_color = get_color(color_index)
+                        text_index = 0
+            char = ' '
+            if len(current_name) > text_index:
+                char = current_name[text_index]
+            cprint(char, current_color, None, attrs=['reverse'], end='')
+            text_index += 1
+        print()
+
+        ###### SHOW REF
+        
+        prunt(fixed_len("ref", ml + 1))
+        for coord in ordered_coords:
+            prunt(refs[coord])
+        print()
+        print()
+
+        ###### SHOW EXAMPLES
+
+        for ex in examples:
+            current_color = color_by_name[ex['name']]
+            prunt(fixed_len(pretty_name(ex['name']), ml) + ' ', current_color)
+            for coord in ordered_coords:
+                if(ex['subs_dict'].get(coord)):
+                    prunt(ex['subs_dict'][coord].mut, current_color)
+                else:
+                    prunt(".")
+            print()
+        print()
+
+        for output in collected_outputs:
+            print(output)
+
     print()
 
 def get_color(color_index): 

@@ -78,6 +78,8 @@ The file `mapping.csv` is a modified version of the table on the [covariants hom
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
 
 # TODO
+ * [ ] investigate fasta / sub bug
+ * [ ] add disclaimer and link to pango-designation
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)
  * [X] don't use sequences as examples - use the lineage defintions from a json file instead
  * [X] accept aligned fasta 
@@ -92,3 +94,12 @@ The initial version of this program was written in cooperation with [@flauschzel
    * [x] min_breakpoints
    * [x] max_breakpoints
    * [x] min_streak_length
+ * [ ] Output structured results
+   * [ ] csv
+   * [ ] html?
+   * [ ] fasta of all sequences that match the criteria, which enables efficient multi-pass strategies
+ * [ ] filter sequences
+   * [ ] by ID
+   * [ ] by metadata
+ * [ ] take metadata csv
+ * [ ] document the output in README

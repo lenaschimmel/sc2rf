@@ -77,7 +77,7 @@ def main():
     if used_clades == ['all']:
         used_clades = clade_names
 
-    if args.force_all_parents and not args.parents.match(len(used_clades)):
+    if args.force_all_parents and not args.parents.matches(len(used_clades)):
         print("The number of allowed parents, the number of selected clades and the --force-all-parents conflict so that the results must be empty.")
         return
 

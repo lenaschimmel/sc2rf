@@ -8,8 +8,6 @@ import fileinput
 import json
 import argparse
 
-from xarray import Coordinate
-
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
 # I removed "ORF" from the names, because often we only see the first one or two letters of a name, and "ORF" providex no information

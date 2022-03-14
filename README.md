@@ -6,14 +6,14 @@ This program can search genome sequences of SARS-CoV-2 for potential recombinant
 # Requirements and Installation
 You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
 
-Also, you need a terminal which supports ANSI control sequences. On Linux, MacOS, etc. it should probably work. On Windows, you need a recent version of Windows 10 and you run the script from `cmd.exe`. See [this table](https://pypi.org/project/termcolor/) for details.
+Also, you need a terminal which supports ANSI control sequences. On Linux, MacOS, etc. it should probably work. **On Windows, it's difficult.** You need a recent version of Windows 10. If you're lucky, it just works with `cmd.exe`. If not, install Windows Terminal from [GitHub](https://github.com/Microsoft/Terminal) or [Microsoft Store](https://www.microsoft.com/de-de/p/windows-terminal/9n0dx20hk701?rtc=1&activetab=pivot:overviewtab) and run it from there.
 
 # Basic Usage
 Start with a `.fasta` file with one or more sequences which might contain recombinants. Your sequences have to be aligned to the `reference.fasta`. If they are not, you will get an error message like:
 
-> Sequence hCoV-19/Phantasialnd/EFWEFWD not properly aligned, length is 29718 instead of 29903.
+> Sequence hCoV-19/Phantasialand/EFWEFWD not properly aligned, length is 29718 instead of 29903.
 
-_(For historical reasons, I always used [Nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) to get aligned sequences, but you might also use [Nextalign](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html) or any other tool. Installing them is easy on Linux or MacOS, but not on Windows.)_
+_(For historical reasons, I always used [Nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) to get aligned sequences, but you might also use [Nextalign](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html) or any other tool. Installing them is easy on Linux or MacOS, but not on Windows. You can also use a web-based tool like [MAFFT](https://mafft.cbrc.jp/alignment/software/closelyrelatedviralgenomes.html).)_
 
 Then call:
 

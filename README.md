@@ -13,7 +13,7 @@ Start with a `.fasta` file with one or more sequences which might contain recomb
 
 > Sequence hCoV-19/Phantasialnd/EFWEFWD not properly aligned, length is 29718 instead of 29903.
 
-_(For historical reasons, I always used [Nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) to get aligned sequences, but you might also use [Nextalign](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html) or any other tool.)_
+_(For historical reasons, I always used [Nextclade](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextclade-cli.html) to get aligned sequences, but you might also use [Nextalign](https://docs.nextstrain.org/projects/nextclade/en/stable/user/nextalign-cli.html) or any other tool. Installing them is easy on Linux or MacOS, but not on Windows.)_
 
 Then call:
 

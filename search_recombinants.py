@@ -293,7 +293,7 @@ def show_matches(all_examples, example_names, samples):
 
         output = ''
 
-        output += colored(fixed_len(sa['name'], ml) + ' ', current_color)
+        output += fixed_len(sa['name'], ml) + ' '
         for coord in ordered_coords:
             if is_missing(coord, sa['missings']):
                 output += colored('N', 'white', attrs=['reverse'])

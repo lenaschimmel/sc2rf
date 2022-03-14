@@ -180,7 +180,7 @@ def read_fasta(path):
                 current_name = line[1:].strip()
                 sequences[current_name] = ""
             else:
-                sequences[current_name] += line.strip()
+                sequences[current_name] += line.strip().upper()
 
     return sequences;
 

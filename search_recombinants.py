@@ -59,7 +59,7 @@ def main():
     parser.add_argument('input', nargs='+', help='input sequences to test, as aligned .fasta file(s)')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
-    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A','21K','21L', '21BA3'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
+    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21I', '21J','21K','21L', '21BA3'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
     parser.add_argument('--unique', '-u', default=2, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
     parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
     parser.add_argument('--max-intermission-count', '-i',  metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
@@ -463,7 +463,7 @@ def show_matches(all_examples, example_names, samples):
         for output in collected_outputs:
             print(output)
 
-    print()
+        print()
 
 def get_color(color_index): 
     return colors[color_index % len(colors)]

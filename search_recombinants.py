@@ -5,6 +5,7 @@ from typing import NamedTuple
 from termcolor import colored, cprint
 import json
 import argparse
+import os
 
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
@@ -45,6 +46,12 @@ class Interval:
 
 def main():
     global mappings
+
+    # This strange line should enable handling of 
+    # ANSI / VT 100 codes in windows terminal
+    # See https://stackoverflow.com/a/39675059/39946
+    os.system('')
+
     mappings = read_mappings('mapping.csv')
     clade_names = list(mappings['by_clade'].keys())
 

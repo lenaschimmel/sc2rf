@@ -2,9 +2,7 @@
 
 import csv
 from typing import NamedTuple
-from numpy import int0
 from termcolor import colored, cprint
-import fileinput
 import json
 import argparse
 

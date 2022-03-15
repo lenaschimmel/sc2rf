@@ -3,10 +3,14 @@ This program can search genome sequences of SARS-CoV-2 for potential recombinant
 
 **The initial version of this program has been written as a quick-and-dirty proof-of-concept and needs a lot of cleanup.**
 
+**The definitions of potential parent clades might contain to many (rare) mutations, which might generate more breakpoints and intermissions in the output than there actually are. This should be fixed soon. See #4 for more info.**
+
 # Requirements and Installation
 You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
 
-Also, you need a terminal which supports ANSI control sequences. On Linux, MacOS, etc. it should probably work. **On Windows, it's difficult.** You need a recent version of Windows 10. If you're lucky, it just works with `cmd.exe`. If not, install Windows Terminal from [GitHub](https://github.com/Microsoft/Terminal) or [Microsoft Store](https://www.microsoft.com/de-de/p/windows-terminal/9n0dx20hk701?rtc=1&activetab=pivot:overviewtab) and run it from there.
+Also, you need a terminal which supports ANSI control sequences to display colored text. On Linux, MacOS, etc. it should probably work. 
+
+On Windows, color support is tricky. On a recent version of Windows 10, it should work, but if it doesn't, install Windows Terminal from [GitHub](https://github.com/Microsoft/Terminal) or [Microsoft Store](https://www.microsoft.com/de-de/p/windows-terminal/9n0dx20hk701?rtc=1&activetab=pivot:overviewtab) and run it from there.
 
 # Basic Usage
 Start with a `.fasta` file with one or more sequences which might contain recombinants. Your sequences have to be aligned to the `reference.fasta`. If they are not, you will get an error message like:
@@ -110,7 +114,7 @@ The file `mapping.csv` is a modified version of the table on the [covariants hom
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
 
 # TODO
- * [ ] investigate fasta / sub bug
+ * [x] investigate fasta / sub bug
  * [ ] add disclaimer and link to pango-designation
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)
  * [X] don't use sequences as examples - use the lineage defintions from a json file instead
@@ -119,7 +123,7 @@ The initial version of this program was written in cooperation with [@flauschzel
    * [ ] as piped stream
  * [ ] If we still accept csv/ssv input, autodetect the delimiter either by file name or by analysing the first line
  * [ ] get rid of `termcolor` which is out only dependency right now
- * [ ] add new pango lineages that do not have their own clade, especially BA.3
+ * [x] add new pango lineages that do not have their own clade, especially BA.3
  * [ ] find a way to handle already designated recombinant lineages
  * [x] accept command line arguments to control how it works
    * [x] min_defining_matches

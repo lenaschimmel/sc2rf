@@ -86,7 +86,7 @@ def main():
 
     global reference
     print("Reading reference genome, lineage definitions...")
-    reference = read_fasta('reference.fasta')['MN908947 (Wuhan-Hu-1/2019)']
+    reference = read_fasta('reference.fasta', None)['MN908947 (Wuhan-Hu-1/2019)']
     all_examples = read_examples('virus_properties.json')
 
     print("Done.\nReading actual input.")
@@ -175,59 +175,66 @@ def read_examples(path):
             }
         return sequences
 
-def read_fasta(path):
+def read_fasta(path, index_range):
     sequences = dict()
+    index = 0
+    current_name = None
     with open(path, newline='') as fasta:
+        current_sequence = ''
         for line in fasta:
             if(line[0] == '>'):
+                if current_name and (not index_range or index_range.matches(index)):
+                    sequences[current_name] = current_sequence
+                index += 1
+                if index_range and index > index_range.max:
+                    return sequences
+                current_sequence = ''
                 current_name = line[1:].strip()
-                sequences[current_name] = ""
             else:
-                sequences[current_name] += line.strip().upper()
+                current_sequence += line.strip().upper()
+        sequences[current_name] = current_sequence
 
-    return sequences;
+    return sequences
 
 def read_subs_from_fasta(path):
-    fastas = read_fasta(path)
+    fastas = read_fasta(path, args.select_sequences)
     sequences = dict()
     start_n = -1
     removed_due_to_ambig = 0
-    index = 1
     for name, fasta in fastas.items():
-        if args.select_sequences.matches(index):
-            subs_dict = dict()
-            missings = list()
-            if len(fasta) != len(reference):
-                print(f"Sequence {name} not properly aligned, length is {len(fasta)} instead of {len(reference)}.")
+        subs_dict = dict()
+        missings = list()
+        if len(fasta) != len(reference):
+            print(f"Sequence {name} not properly aligned, length is {len(fasta)} instead of {len(reference)}.")
+        else:
+            ambiguous_count = 0
+            for i in range(1, len(reference) + 1):
+                r = reference[i - 1]
+                s = fasta[i - 1]
+                if s == 'N' or s == '-':
+                    if start_n == -1:
+                        start_n = i
+                elif start_n >= 0:
+                    missings.append((start_n, i - 1))
+                    start_n = -1
+                    
+                if s != 'N' and s != '-' and r != s:
+                    subs_dict[i] = Sub(r, i, s)
+
+                if not s in "AGTCN-":
+                    ambiguous_count += 1
+
+            if ambiguous_count <= args.max_ambiguous:
+                sequences[name] = {
+                    'name': name,
+                    'subs_dict': subs_dict,
+                    'subs_list': list(subs_dict.values()),
+                    'subs_set': set(subs_dict.values()),
+                    'missings': missings
+                }
             else:
-                ambiguous_count = 0
-                for i in range(1, len(reference) + 1):
-                    r = reference[i - 1]
-                    s = fasta[i - 1]
-                    if s == 'N' or s == '-':
-                        if start_n == -1:
-                            start_n = i
-                    elif start_n >= 0:
-                        missings.append((start_n, i - 1))
-                        start_n = -1
-                        
-                    if s != 'N' and s != '-' and r != s:
-                        subs_dict[i] = Sub(r, i, s)
-
-                    if not s in "AGTCN-":
-                        ambiguous_count += 1
-
-                if ambiguous_count <= args.max_ambiguous:
-                    sequences[name] = {
-                        'name': name,
-                        'subs_dict': subs_dict,
-                        'subs_list': list(subs_dict.values()),
-                        'subs_set': set(subs_dict.values()),
-                        'missings': missings
-                    }
-                else:
-                    removed_due_to_ambig += 1
-        index += 1
+                removed_due_to_ambig += 1
+ 
     if removed_due_to_ambig:
         print(f"Removed {removed_due_to_ambig} of {len(fastas)} sequences with more than { args.max_ambiguous} ambiguous nucs.")
 

@@ -6,7 +6,7 @@ This program can search genome sequences of SARS-CoV-2 for potential recombinant
 
 Anyway, I'm happy that scientists are already seeing benefits from this tool, and use it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
 
-Though I already have a lot of ideas and plans for hits, I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel)!
+Though I already have a lot of ideas and plans for this (see at the bottom of this document), I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel)!
 
 # Example output
 ![Screenshot of the terminal output of this program](screenshot-no-deletions.png)

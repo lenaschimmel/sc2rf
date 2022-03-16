@@ -6,6 +6,7 @@ from termcolor import colored, cprint
 import json
 import argparse
 import os
+import requests
 
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
@@ -61,10 +62,10 @@ def main():
         ' The limts are inclusive. Only positive numbers are supported.',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    parser.add_argument('input', nargs='+', help='input sequences to test, as aligned .fasta file(s)')
+    parser.add_argument('input', nargs='*', help='input sequences to test, as aligned .fasta file(s)')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
-    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21I', '21J','21K','21L', '21BA3'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
+    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21K','21L', '21BA3'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
     parser.add_argument('--unique', '-u', default=2, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
     parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
     parser.add_argument('--max-intermission-count', '-i',  metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
@@ -72,9 +73,20 @@ def main():
     parser.add_argument('--max-ambiguous', '-a',  metavar='NUM', default=50, type=int, help='Maximum number of ambiguous nucs in a sample before it gets ignored.')
     parser.add_argument('--force-all-parents', '-f', action='store_true', help='Force to consider all clades as potential parents for all sequences. Only useful for debugging.')
     parser.add_argument('--select-sequences', '-s', default='0-999999', metavar='INTERVAL', type=Interval, help='Use only a specific range of inpur sequences. DOES NOT YET WORK WITH MULTIPLE INPUT FILES.')
+    parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
+    parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
 
     global args
     args = parser.parse_args()
+
+    if args.rebuild_examples:
+        rebuild_examples()
+        if len(args.input) == 0:
+            print("Examples were rebuilt, and no input sequences were provided. Program exits.")
+            return
+    elif len(args.input) == 0:
+        print("Input sequences must be provided, except when rebuilding the examples. Use --help for more info. Program exits.")
+        return
 
     used_clades = args.clades
     if used_clades == ['all']:
@@ -116,8 +128,6 @@ def main():
         else:    
             for ex_name, ex in used_examples.items():
                 matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
-                matches_percent = int(matches_count / len(ex['unique_subs_set']) * 100)
-                #print(f"  Unique {ex_name}: {matches_percent}% ({matches_count} of {len(ex['unique_subs_set'])})")
                 if matches_count >= args.unique: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
                     matching_example_names.append(ex_name)# 
 
@@ -134,6 +144,34 @@ def main():
 
     for example_names, samples in match_sets.items():
         show_matches(used_examples, example_names, samples)
+
+def rebuild_examples():
+    print("Rebuilding examples from cov-spectrum.org...")
+    with open('virus_properties.json', newline='', mode='w') as jsonfile:
+
+        the_map = {}
+
+        for clade, clade_props in mappings['by_clade'].items():
+            pango = clade_props['PangoLineage']
+            print(f"Fetching data for {clade} / {pango}")
+            r = requests.get(f'https://lapis.cov-spectrum.org/open/v1/sample/nuc-mutations?pangoLineage={pango}*&minProportion=0.70')
+            result = r.json()
+            if len(result['errors']):
+                print("Errors occured while querying cov-spectrum.org:")
+                for e in result['errors']:
+                    print("    " + e)
+
+            the_map[clade] = result['data']
+
+        props = {
+            "schemaVersion": "s2r 0.0.1",
+            "comment": "File format is inspired by Nextstrains virus_properties, but evolved to be more like cov-spectrum API.",
+            "nucMutLabelMap": {},
+            'nucMutLabelMapReverse': the_map
+        }
+
+        json.dump(props, jsonfile, indent=4)
+        print("Examples written to disk.")
 
 def pretty_name(clade_name):
     global mappings
@@ -153,16 +191,22 @@ def pretty_name(clade_name):
 def read_examples(path):
     with open(path, newline='') as jsonfile:
         props = json.load(jsonfile)
-        assert props['schemaVersion'] == '1.10.0'
+        assert props['schemaVersion'] == 's2r 0.0.1'
         sequences = {}
         for clade, subs in props['nucMutLabelMapReverse'].items():
             name = clade # TODO get pango-names
             subs_dict = dict()
             for s in subs:
-                s = s.strip()
+                # I experimented with different file formats, this code can read different ones
+                if isinstance(s, str):
+                    s = s.strip()
+                else:
+                    s = s['mutation'].strip()
+                
                 if len(s) > 0:
-                    sub = parse_short_sub(s)
-                    subs_dict[sub.coordinate] = sub
+                    sub = parse_sub(s)
+                    if (sub.mut != '-' or args.enable_deletions) and sub.mut != '.':
+                        subs_dict[sub.coordinate] = sub
 
             #print(f"Read {name} with subs: {subs_dict}")
 
@@ -247,12 +291,11 @@ class Sub(NamedTuple):
     mut: str
 
 def parse_sub(s):
-    return Sub(s[0], int(s[1:-1]), s[-1])
-
-def parse_short_sub(s):
-    coordinate = int(s[0:-1])
-    return Sub(reference[coordinate-1], coordinate, s[-1])
-
+    if(s[0].isdigit()):
+        coordinate = int(s[0:-1])
+        return Sub(reference[coordinate-1], coordinate, s[-1])
+    else:
+        return Sub(s[0], int(s[1:-1]), s[-1])
 
 def prunt(s, color=None):
     if color:

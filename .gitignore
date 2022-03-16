@@ -1,2 +1,5 @@
 # Project specific
 nextclade-output/
+data
+filter_by_id.mjs
+genemap.gff

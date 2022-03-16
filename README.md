@@ -1,9 +1,13 @@
 # What's this?
 This program can search genome sequences of SARS-CoV-2 for potential recombinants - new virus lineages that have (partial) genes from more than one parent lineage.
 
-**The initial version of this program has been written as a quick-and-dirty proof-of-concept and needs a lot of cleanup.**
+# Is it already usable? 
+**This is a very young project, stared on March 5th, 2022. As such, proceed with care. Results may be wrong or misleading, and with every update, anything can still change a lot.**
 
-**The definitions of potential parent clades might contain to many (rare) mutations, which might generate more breakpoints and intermissions in the output than there actually are. This should be fixed soon. See #4 for more info.**
+Though I already have a lot of ideas and plans for hits, I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel).
+
+Anyway, scientists are already seeing benefits from this tool, and use it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
+
 
 # Requirements and Installation
 You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
@@ -34,52 +38,57 @@ usage: search_recombinants.py [-h] [--parents INTERVAL] [--breakpoints INTERVAL]
                               [--unique NUM] [--max-intermission-length NUM]
                               [--max-intermission-count NUM] [--max-name-length NUM]
                               [--max-ambiguous NUM] [--force-all-parents]
-                              input [input ...]
+                              [--select-sequences INTERVAL] [--enable-deletions]
+                              [--rebuild-examples]
+                              [input ...]
 
 Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.
 
 positional arguments:
-  input                 input sequences to test, as aligned .fasta file(s)
+  input                 input sequences to test, as aligned .fasta file(s) (default:
+                        None)
 
 optional arguments:
   -h, --help            show this help message and exit
-
   --parents INTERVAL, -p INTERVAL
-                        Allowed umber of potential parents of a recombinant. (default: 2-4)
-
+                        Allowed umber of potential parents of a recombinant. (default:
+                        2-4)
   --breakpoints INTERVAL, -b INTERVAL
                         Allowed number of breakpoints in a recombinant. (default: 1-4)
-
   --clades [{all,20I,20H,...} ...], -c [{all,20I,20H,...} ...]
                         List of clades which are considered as potential parents. Use
-                        Nextclade names, i.e. "21A". Also accepts "all". (default: ['20I',
-                        '20H', '20J', '21A', '21K', '21L'])
-
-  --unique NUM, -u NUM  Minimum of substitutions in a sample which are unique to a potential
-                        parent clade, so that the clade will be considered. (default: 2)
-
-  --max-intermission-length NUM, -l NUM
-                        The maximum length of an intermission in consecutive substitutions.
-                        Intermissions are stretches to be ignored when counting breakpoints.
+                        Nextclade names, i.e. "21A". Also accepts "all". (default:
+                        ['20I', '20H', '20J', '21A', '21K', '21L', '21BA3'])
+  --unique NUM, -u NUM  Minimum of substitutions in a sample which are unique to a
+                        potential parent clade, so that the clade will be considered.
                         (default: 2)
-
+  --max-intermission-length NUM, -l NUM
+                        The maximum length of an intermission in consecutive
+                        substitutions. Intermissions are stretches to be ignored when
+                        counting breakpoints. (default: 2)
   --max-intermission-count NUM, -i NUM
-                        The maximum number of intermissions which will be ignored. Surplus
-                        intermissions count towards the number of breakpoints. (default: 8)
-
+                        The maximum number of intermissions which will be ignored.
+                        Surplus intermissions count towards the number of breakpoints.
+                        (default: 8)
   --max-name-length NUM, -n NUM
                         Only show up to NUM characters of sample names. (default: 30)
-
   --max-ambiguous NUM, -a NUM
-                        Maximum number of ambiguous nucs in a sample before it gets ignored.
-                        (default: 50)
-                        
+                        Maximum number of ambiguous nucs in a sample before it gets
+                        ignored. (default: 50)
   --force-all-parents, -f
-                        Force to consider all clades as potential parents for all sequences.
-                        Only useful for debugging. (default: False)
+                        Force to consider all clades as potential parents for all
+                        sequences. Only useful for debugging. (default: False)
+  --select-sequences INTERVAL, -s INTERVAL
+                        Use only a specific range of inpur sequences. DOES NOT YET WORK
+                        WITH MULTIPLE INPUT FILES. (default: 0-999999)
+  --enable-deletions, -d
+                        Include deletions in lineage comparision. (default: False)
+  --rebuild-examples, -r
+                        Rebuild the mutations in examples by querying cov-spectrum.org.
+                        (default: False)
 
-An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or
-"-7"). The limts are inclusive. Only positive numbers are supported.
+An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one
+("4-" or "-7"). The limts are inclusive. Only positive numbers are supported.
 ```
 
 # No output / some sequences not shown
@@ -99,20 +108,15 @@ search_recombinants.py --parents 1-35 --breakpoints 0-100 --unique 0 --max-ambig
 # Interpreting the output
 _To be written..._
 
-Some example output (based on Sequences published by the [German Robert-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland)):
-
 <img width="1110" alt="Screenshot of the terminal output of this program" src="https://user-images.githubusercontent.com/1325019/156946733-cdc025d7-869a-4ce6-b1b7-62b0d1a30bac.png">
 
-
-# Source material
-I used the following files from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files):
- * `virus_properties.json`
- * `reference.fasta`
-
-The file `mapping.csv` is a modified version of the table on the [covariants homepage](https://covariants.org/) by Nextstrain.
+# Source material attribution
+ * `virus_properties.json` contains data from [LAPIS / cov-](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).
+ * `reference.fasta` is taken from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files), see [NCBI](https://www.ncbi.nlm.nih.gov/nuccore/MN908947) for attribution. 
+ * `mapping.csv` is a modified version of the table on the [covariants homepage](https://covariants.org/) by Nextstrain.
+ * Example output / screenshot based on Sequences published by the [German Robert-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland).
 
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
-
 # TODO
  * [x] investigate fasta / sub bug
  * [ ] add disclaimer and link to pango-designation

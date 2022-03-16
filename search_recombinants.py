@@ -438,13 +438,13 @@ def show_matches(all_examples, example_names, samples):
         postfix = ''
         num_breakpoints = len(further_reduced) - 1
         if num_intermissions > args.max_intermission_count:
-            postfix = ' of ' + str(num_intermissions)
+            postfix = '/' + str(num_intermissions)
             num_breakpoints += (num_intermissions - args.max_intermission_count) * 2
             num_intermissions = args.max_intermission_count
 
-        output += f"     {num_breakpoints} breakpoint(s)"
+        output += f" {num_breakpoints} BP"
         if num_intermissions:
-            output += f", ignored {num_intermissions}{postfix} intermissions <= {args.max_intermission_length}"
+            output += f", {num_intermissions}{postfix} I <= {args.max_intermission_length}"
 
         if args.breakpoints.matches(num_breakpoints):
             collected_outputs.append(output)

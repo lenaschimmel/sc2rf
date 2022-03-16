@@ -4,10 +4,12 @@ This program can search genome sequences of SARS-CoV-2 for potential recombinant
 # Is it already usable? 
 **This is a very young project, stared on March 5th, 2022. As such, proceed with care. Results may be wrong or misleading, and with every update, anything can still change a lot.**
 
-Though I already have a lot of ideas and plans for hits, I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel).
+Anyway, I'm happy that scientists are already seeing benefits from this tool, and use it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
 
-Anyway, scientists are already seeing benefits from this tool, and use it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
+Though I already have a lot of ideas and plans for hits, I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel)!
 
+# Example output
+![Screenshot of the terminal output of this program](screenshot-no-deletions.png)
 
 # Requirements and Installation
 You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
@@ -108,8 +110,6 @@ search_recombinants.py --parents 1-35 --breakpoints 0-100 --unique 0 --max-ambig
 # Interpreting the output
 _To be written..._
 
-![Screenshot of the terminal output of this program](screenshot-no-deletions.png)
-
 # Source material attribution
  * `virus_properties.json` contains data from [LAPIS / cov-](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).
  * `reference.fasta` is taken from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files), see [NCBI](https://www.ncbi.nlm.nih.gov/nuccore/MN908947) for attribution. 
@@ -117,23 +117,17 @@ _To be written..._
  * Example output / screenshot based on Sequences published by the [German Robert-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland).
 
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
+
 # TODO
- * [x] investigate fasta / sub bug
+ * [] Move these TODOs into actual issues
  * [ ] add disclaimer and link to pango-designation
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)
- * [X] don't use sequences as examples - use the lineage defintions from a json file instead
  * [X] accept aligned fasta 
    * [x] as input file
    * [ ] as piped stream
  * [ ] If we still accept csv/ssv input, autodetect the delimiter either by file name or by analysing the first line
  * [ ] get rid of `termcolor` which is out only dependency right now
- * [x] add new pango lineages that do not have their own clade, especially BA.3
  * [ ] find a way to handle already designated recombinant lineages
- * [x] accept command line arguments to control how it works
-   * [x] min_defining_matches
-   * [x] min_breakpoints
-   * [x] max_breakpoints
-   * [x] min_streak_length
  * [ ] Output structured results
    * [ ] csv
    * [ ] html?

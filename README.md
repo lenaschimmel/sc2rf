@@ -118,8 +118,8 @@ _To be written..._
 
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
 
-# TODO
- * [] Move these TODOs into actual issues
+# TODO / IDEAS / PLANS
+ * [ ] Move these TODOs into actual issues
  * [ ] add disclaimer and link to pango-designation
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)
  * [X] accept aligned fasta 
@@ -137,3 +137,12 @@ The initial version of this program was written in cooperation with [@flauschzel
    * [ ] by metadata
  * [ ] take metadata csv
  * [ ] document the output in README
+ * [ ] check / fix `--enabled-deletions`
+ * [ ] adjustable threshold for mutation prevalence
+ * [ ] new color mode (with background color and monochrome text on top)
+ * [ ] new bar mode (with colored lines beneath each sequence, one for each example sequence, and "intermissions" shown in the color of the "surrounding" lineage, but not as bright)
+ * [ ] interactive mode, for filtering, reordering, etc.
+ * [ ] sort sequences within each block
+ * [ ] re-think this whole "intermission" concept
+ * [ ] select a single sequence and let the tool refine the choice of parental sequences, not just focusing on commonly known lineages (going up and down in the tree)
+ * [ ] use more common terms to describe things (needs feedback from people with actual experience in the field)

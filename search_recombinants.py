@@ -93,7 +93,8 @@ def main():
     all_samples = dict()
     for path in args.input:
         read_samples = read_subs_from_fasta(path)
-        all_samples = all_samples | read_samples
+        for key, val in read_samples.items():
+            all_samples[key] = val
     print("Done.")
 
 

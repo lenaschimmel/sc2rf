@@ -108,7 +108,7 @@ search_recombinants.py --parents 1-35 --breakpoints 0-100 --unique 0 --max-ambig
 # Interpreting the output
 _To be written..._
 
-<img width="1110" alt="Screenshot of the terminal output of this program" src="https://user-images.githubusercontent.com/1325019/156946733-cdc025d7-869a-4ce6-b1b7-62b0d1a30bac.png">
+![Screenshot of the terminal output of this program](screenshot-no-deletions.png)
 
 # Source material attribution
  * `virus_properties.json` contains data from [LAPIS / cov-](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).

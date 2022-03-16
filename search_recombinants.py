@@ -75,6 +75,7 @@ def main():
     parser.add_argument('--select-sequences', '-s', default='0-999999', metavar='INTERVAL', type=Interval, help='Use only a specific range of inpur sequences. DOES NOT YET WORK WITH MULTIPLE INPUT FILES.')
     parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
+    parser.add_argument('--add-spaces', metavar='NUM', default=0, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
 
     global args
     args = parser.parse_args()
@@ -334,6 +335,10 @@ def show_matches(all_examples, example_names, samples):
         color_by_name[ex['name']] = get_color(color_index)
         color_index += 1
 
+    # This method works in a weird way: it pre-constructs the lines for the actual sequences, 
+    # and while it constructs the strings, it decides if they are worth showing at the same time.
+    # Then, if at least one such string was collected, it prints the header lines for them, and after that the strings.
+
     ###### SHOW SAMPLES
     current_color = 'grey'
     collected_outputs = []
@@ -350,7 +355,9 @@ def show_matches(all_examples, example_names, samples):
         output = ''
 
         output += fixed_len(sa['name'], ml) + ' '
-        for coord in ordered_coords:
+        for c, coord in enumerate(ordered_coords):
+            if args.add_spaces and c % args.add_spaces == 0:
+                output += " "
             if is_missing(coord, sa['missings']):
                 output += colored('N', 'white', attrs=['reverse'])
             else:
@@ -463,7 +470,9 @@ def show_matches(all_examples, example_names, samples):
             else:
                 prunt(' ' * (ml+1))
 
-            for coord in ordered_coords:
+            for c, coord in enumerate(ordered_coords):
+                if args.add_spaces and c % args.add_spaces == 0:
+                    prunt(" ")
                 if coord//div > 0:
                     prunt((coord//div)%10)
                 else:
@@ -480,7 +489,7 @@ def show_matches(all_examples, example_names, samples):
         current_color = get_color(color_index)
         text_index = 0
 
-        for coord in ordered_coords:
+        for c, coord in enumerate(ordered_coords):
             for name, limits in genes.items():
                 if coord >= limits[0] and coord <= limits[1]:
                     if current_name != name:
@@ -488,17 +497,23 @@ def show_matches(all_examples, example_names, samples):
                         color_index += 1
                         current_color = get_color(color_index)
                         text_index = 0
-            char = ' '
-            if len(current_name) > text_index:
-                char = current_name[text_index]
-            cprint(char, current_color, None, attrs=['reverse'], end='')
-            text_index += 1
+                    
+            # Do this once or twice, depending on space insertion
+            for i in range(1 + (args.add_spaces and c % args.add_spaces == 0)):
+                char = ' '
+                if len(current_name) > text_index:
+                    char = current_name[text_index]
+                cprint(char, current_color, None, attrs=['reverse'], end='')
+                text_index += 1
+
         print()
 
         ###### SHOW REF
         
         prunt(fixed_len("ref", ml + 1))
-        for coord in ordered_coords:
+        for c, coord in enumerate(ordered_coords):
+            if args.add_spaces and c % args.add_spaces == 0:
+                prunt(" ")
             prunt(refs[coord])
         print()
         print()
@@ -508,7 +523,9 @@ def show_matches(all_examples, example_names, samples):
         for ex in examples:
             current_color = color_by_name[ex['name']]
             prunt(fixed_len(pretty_name(ex['name']), ml) + ' ', current_color)
-            for coord in ordered_coords:
+            for c, coord in enumerate(ordered_coords):
+                if args.add_spaces and c % args.add_spaces == 0:
+                    prunt(" ")
                 if(ex['subs_dict'].get(coord)):
                     prunt(ex['subs_dict'][coord].mut, current_color)
                 else:

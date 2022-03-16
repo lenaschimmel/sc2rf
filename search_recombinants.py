@@ -76,6 +76,10 @@ def main():
     parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
     parser.add_argument('--add-spaces', metavar='NUM', default=0, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
+    # It's a weird feature, but very usefule for e.g. the German RKI data
+    # Also, it adds blank lines where the sorting key changes, e.g. between labs
+    # if NUM matches the length of the lab id prefix of the ID
+    parser.add_argument('--sort-by-id', metavar='NUM', default=0, type=int, help='Sort the input sequences by the first NUM characters of their ID. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
 
     global args
     args = parser.parse_args()
@@ -311,6 +315,9 @@ def fixed_len(s, l):
 def show_matches(all_examples, example_names, samples):
     ml = args.max_name_length
 
+    if args.sort_by_id:
+        samples.sort(key = lambda sample: sample['name'][:args.sort_by_id])
+
     examples = [all_examples[name] for name in example_names]
 
     coords = set()
@@ -342,6 +349,8 @@ def show_matches(all_examples, example_names, samples):
     ###### SHOW SAMPLES
     current_color = 'grey'
     collected_outputs = []
+
+    last_id = ""
 
     for sa in samples:
         #current_color = get_color(color_index)
@@ -454,6 +463,10 @@ def show_matches(all_examples, example_names, samples):
             output += f", {num_intermissions}{postfix} I <= {args.max_intermission_length}"
 
         if args.breakpoints.matches(num_breakpoints):
+            if args.sort_by_id and last_id != sa['name'][:args.sort_by_id] != last_id[:args.sort_by_id]:
+                collected_outputs.append("---")
+
+            last_id = sa['name']
             collected_outputs.append(output)
     
     if len(collected_outputs):

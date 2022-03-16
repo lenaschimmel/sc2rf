@@ -90,6 +90,9 @@ optional arguments:
                         (default: False)
   --add-spaces NUM      Add spaces between every N colums, which makes it easier to keep 
                         your eye at a fixed place. (default: 0)
+  --sort-by-id NUM      Sort the input sequences by the first NUM characters of their ID. 
+                        Usefull if this correlates with meaning full meta information, e.g.
+                        the sequencing lab. (default: 0)
 
 An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one
 ("4-" or "-7"). The limts are inclusive. Only positive numbers are supported.

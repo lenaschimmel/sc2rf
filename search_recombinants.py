@@ -77,6 +77,7 @@ def main():
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
     parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provice NUM, only the first NUM characters are considered. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
 
     global args
     args = parser.parse_args()
@@ -99,17 +100,17 @@ def main():
         return
 
     global reference
-    print("Reading reference genome, lineage definitions...")
+    vprint("Reading reference genome, lineage definitions...")
     reference = read_fasta('reference.fasta', None)['MN908947 (Wuhan-Hu-1/2019)']
     all_examples = read_examples('virus_properties.json')
 
-    print("Done.\nReading actual input.")
+    vprint("Done.\nReading actual input.")
     all_samples = dict()
     for path in args.input:
         read_samples = read_subs_from_fasta(path)
         for key, val in read_samples.items():
             all_samples[key] = val
-    print("Done.")
+    vprint("Done.")
 
 
 
@@ -122,7 +123,7 @@ def main():
 
     match_sets = dict()
 
-    print("Scanning input for matches against linege definitons...")
+    vprint("Scanning input for matches against linege definitons...")
     for sa_name, sa in all_samples.items():
         matching_example_names = []
         if args.force_all_parents:
@@ -142,10 +143,14 @@ def main():
             else:
                 match_sets[matching_examples_tup] = [sa]
 
-    print("Done.\nPriniting detailed analysis:\n\n")
+    vprint("Done.\nPriniting detailed analysis:\n\n")
 
     for example_names, samples in match_sets.items():
         show_matches(used_examples, example_names, samples)
+
+def vprint(text: str):
+    if args.verbose:
+        print(text)
 
 def rebuild_examples():
     print("Rebuilding examples from cov-spectrum.org...")
@@ -611,7 +616,7 @@ def calculate_relations(examples):
             if other is not example:
                 union = union | (other['subs_set'])
         example['unique_subs_set'] = example['subs_set'] - union
-        print(f"Clade  {pretty_name(example['name'])} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
+        vprint(f"Clade  {pretty_name(example['name'])} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
 
 class ArgumentAdvancedDefaultsHelpFormatter(argparse.HelpFormatter):
     """In contrast to ArgumentDefaultsHelpFormatter from argparse,

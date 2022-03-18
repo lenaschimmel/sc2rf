@@ -103,7 +103,7 @@ optional arguments:
 
   --mutation-threshold NUM, -t NUM
                         Consider mutations with a prevalence of at least NUM as mandatory
-                        for a clade (range 0.0 - 1.0, default: 0.95).
+                        for a clade (range 0.05 - 1.0, default: 0.75).
 
   --add-spaces [NUM]    Add spaces between every N colums, which makes it easier to keep
                         your eye at a fixed place. (default without flag: 0, default with

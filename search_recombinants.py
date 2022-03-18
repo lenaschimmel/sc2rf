@@ -78,11 +78,12 @@ def main():
     parser.add_argument('--select-sequences', '-s', default='0-999999', metavar='INTERVAL', type=Interval, help='Use only a specific range of inpur sequences. DOES NOT YET WORK WITH MULTIPLE INPUT FILES.')
     parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
+    parser.add_argument('--mutation-threshold', '-t', metavar='NUM', default=0.75, type=float, help='Consider mutations with a prevalence of at least NUM as mandatory for a clade (range 0.05 - 1.0, default: %(default)s).')
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
     parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provice NUM, only the first NUM characters are considered. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
     parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
-
+    
     global args
     args = parser.parse_args()
 
@@ -106,6 +107,10 @@ def main():
 
     if args.force_all_parents and not args.parents.matches(len(used_clades)):
         print("The number of allowed parents, the number of selected clades and the --force-all-parents conflict so that the results must be empty.")
+        return
+
+    if args.mutation_threshold < 0.05 or args.mutation_threshold > 1.0 :
+        print("mutation-threshold must be between 0.05 and 1.0")
         return
 
     global reference
@@ -201,7 +206,7 @@ def rebuild_examples():
         for clade, clade_props in mappings['by_clade'].items():
             pango = clade_props['PangoLineage']
             print(f"Fetching data for {clade} / {pango}")
-            r = requests.get(f'https://lapis.cov-spectrum.org/open/v1/sample/nuc-mutations?pangoLineage={pango}*&minProportion=0.70')
+            r = requests.get(f'https://lapis.cov-spectrum.org/open/v1/sample/nuc-mutations?pangoLineage={pango}*&minProportion=0.05')
             result = r.json()
             if len(result['errors']):
                 print("Errors occured while querying cov-spectrum.org:")
@@ -248,6 +253,8 @@ def read_examples(path):
                 if isinstance(s, str):
                     s = s.strip()
                 else:
+                    if s['proportion'] < args.mutation_threshold:
+                        continue
                     s = s['mutation'].strip()
                 
                 if len(s) > 0:

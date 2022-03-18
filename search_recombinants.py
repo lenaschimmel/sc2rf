@@ -60,26 +60,23 @@ def main():
         description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', 
         epilog='An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7").'
         ' The limts are inclusive. Only positive numbers are supported.',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+        formatter_class=ArgumentAdvancedDefaultsHelpFormatter
     )
     parser.add_argument('input', nargs='*', help='input sequences to test, as aligned .fasta file(s)')
-    parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed umber of potential parents of a recombinant.')
+    parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed number of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
-    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21K','21L', '21BA3'], choices=(['all'] + clade_names), help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
+    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21K','21L', '21BA3'], help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
     parser.add_argument('--unique', '-u', default=2, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
-    parser.add_argument('--max-intermission-length', '-l',  metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
-    parser.add_argument('--max-intermission-count', '-i',  metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
-    parser.add_argument('--max-name-length', '-n',  metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
-    parser.add_argument('--max-ambiguous', '-a',  metavar='NUM', default=50, type=int, help='Maximum number of ambiguous nucs in a sample before it gets ignored.')
+    parser.add_argument('--max-intermission-length', '-l', metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
+    parser.add_argument('--max-intermission-count', '-i', metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
+    parser.add_argument('--max-name-length', '-n', metavar='NUM', default=30, type=int, help='Only show up to NUM characters of sample names.')
+    parser.add_argument('--max-ambiguous', '-a', metavar='NUM', default=50, type=int, help='Maximum number of ambiguous nucs in a sample before it gets ignored.')
     parser.add_argument('--force-all-parents', '-f', action='store_true', help='Force to consider all clades as potential parents for all sequences. Only useful for debugging.')
     parser.add_argument('--select-sequences', '-s', default='0-999999', metavar='INTERVAL', type=Interval, help='Use only a specific range of inpur sequences. DOES NOT YET WORK WITH MULTIPLE INPUT FILES.')
     parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
-    parser.add_argument('--add-spaces', metavar='NUM', default=0, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
-    # It's a weird feature, but very usefule for e.g. the German RKI data
-    # Also, it adds blank lines where the sorting key changes, e.g. between labs
-    # if NUM matches the length of the lab id prefix of the ID
-    parser.add_argument('--sort-by-id', metavar='NUM', default=0, type=int, help='Sort the input sequences by the first NUM characters of their ID. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
+    parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
+    parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provice NUM, only the first NUM characters are considered. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
 
     global args
     args = parser.parse_args()
@@ -463,7 +460,7 @@ def show_matches(all_examples, example_names, samples):
             output += f", {num_intermissions}{postfix} I <= {args.max_intermission_length}"
 
         if args.breakpoints.matches(num_breakpoints):
-            if args.sort_by_id and last_id != sa['name'][:args.sort_by_id] != last_id[:args.sort_by_id]:
+            if args.sort_by_id and args.sort_by_id != 999 and last_id != sa['name'][:args.sort_by_id] != last_id[:args.sort_by_id]:
                 collected_outputs.append("---")
 
             last_id = sa['name']
@@ -615,6 +612,28 @@ def calculate_relations(examples):
                 union = union | (other['subs_set'])
         example['unique_subs_set'] = example['subs_set'] - union
         print(f"Clade  {pretty_name(example['name'])} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
+
+class ArgumentAdvancedDefaultsHelpFormatter(argparse.HelpFormatter):
+    """In contrast to ArgumentDefaultsHelpFormatter from argparse,
+    this formatter also shows 'const' values if they are present, and
+    adds blank lines between actions.
+    """
+
+    def _get_help_string(self, action):
+        help = action.help
+        if '%(default)' not in action.help and not isinstance(action, argparse._StoreConstAction):
+            if action.default is not argparse.SUPPRESS:
+                defaulting_nargs = [argparse.OPTIONAL, argparse.ZERO_OR_MORE]
+                if action.option_strings or action.nargs in defaulting_nargs:
+                    if action.const:
+                        help += ' (default without flag: %(default)s, default with flag: %(const)s)'
+                    else:
+                        help += ' (default: %(default)s)'
+        return help
+
+    def _format_action(self, action):
+        return super()._format_action(action) + '\n'
+
 
 if __name__ == '__main__':
     main()

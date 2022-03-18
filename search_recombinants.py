@@ -513,10 +513,10 @@ def show_matches(all_examples, example_names, samples):
                 char = ' '
                 if len(current_name) > text_index:
                     char = current_name[text_index]
-                cprint(char, current_color, None, attrs=['reverse'], end='')
+                cprint(char, 'grey', "on_" + current_color, end='')
                 text_index += 1
 
-        print()
+        print(" ")
 
         ###### SHOW REF
         

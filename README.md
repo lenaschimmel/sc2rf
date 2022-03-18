@@ -2,9 +2,9 @@
 This program can search genome sequences of SARS-CoV-2 for potential recombinants - new virus lineages that have (partial) genes from more than one parent lineage.
 
 # Is it already usable? 
-**This is a very young project, stared on March 5th, 2022. As such, proceed with care. Results may be wrong or misleading, and with every update, anything can still change a lot.**
+**This is a very young project, started on March 5th, 2022. As such, proceed with care. Results may be wrong or misleading, and with every update, anything can still change a lot.**
 
-Anyway, I'm happy that scientists are already seeing benefits from this tool, and use it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
+Anyway, I'm happy that scientists are already seeing benefits from this tool and using it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
 
 Though I already have a lot of ideas and plans for this (see at the bottom of this document), I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel)!
 
@@ -36,88 +36,115 @@ You can execute `search_recombinants.py -h` to get a help message like this one,
 
 <!-- BEGIN_MARKER -->
 ```
-usage: search_recombinants.py [-h] [--parents INTERVAL] [--breakpoints INTERVAL]
-                              [--clades [CLADES [CLADES ...]]] [--unique NUM]
+usage: search_recombinants.py [-h] [--parents INTERVAL]
+                              [--breakpoints INTERVAL]
+                              [--clades [CLADES [CLADES ...]]]
+                              [--unique NUM]
                               [--max-intermission-length NUM]
-                              [--max-intermission-count NUM] [--max-name-length NUM]
-                              [--max-ambiguous NUM] [--force-all-parents]
-                              [--select-sequences INTERVAL] [--enable-deletions]
-                              [--rebuild-examples] [--mutation-threshold NUM]
-                              [--add-spaces [NUM]] [--sort-by-id [NUM]] [--verbose]
+                              [--max-intermission-count NUM]
+                              [--max-name-length NUM]
+                              [--max-ambiguous NUM]
+                              [--force-all-parents]
+                              [--select-sequences INTERVAL]
+                              [--enable-deletions]
+                              [--rebuild-examples]
+                              [--mutation-threshold NUM]
+                              [--add-spaces [NUM]]
+                              [--sort-by-id [NUM]] [--verbose]
                               [input [input ...]]
 
-Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.
+Analyse SARS-CoV-2 sequences for potential, unknown recombinant
+variants.
 
 positional arguments:
-  input                 input sequences to test, as aligned .fasta file(s) (default: None)
+  input                 input sequences to test, as aligned
+                        .fasta file(s) (default: None)
 
 optional arguments:
   -h, --help            show this help message and exit
 
   --parents INTERVAL, -p INTERVAL
-                        Allowed number of potential parents of a recombinant. (default:
-                        2-4)
+                        Allowed number of potential parents of a
+                        recombinant. (default: 2-4)
 
   --breakpoints INTERVAL, -b INTERVAL
-                        Allowed number of breakpoints in a recombinant. (default: 1-4)
+                        Allowed number of breakpoints in a
+                        recombinant. (default: 1-4)
 
   --clades [CLADES [CLADES ...]], -c [CLADES [CLADES ...]]
-                        List of clades which are considered as potential parents. Use
-                        Nextclade names, i.e. "21A". Also accepts "all". (default: ['20I',
-                        '20H', '20J', '21A', '21K', '21L', '21BA3'])
+                        List of clades which are considered as
+                        potential parents. Use Nextclade names,
+                        i.e. "21A". Also accepts "all". (default:
+                        ['20I', '20H', '20J', '21A', '21K',
+                        '21L', '21BA3'])
 
-  --unique NUM, -u NUM  Minimum of substitutions in a sample which are unique to a
-                        potential parent clade, so that the clade will be considered.
-                        (default: 2)
+  --unique NUM, -u NUM  Minimum of substitutions in a sample
+                        which are unique to a potential parent
+                        clade, so that the clade will be
+                        considered. (default: 2)
 
   --max-intermission-length NUM, -l NUM
-                        The maximum length of an intermission in consecutive
-                        substitutions. Intermissions are stretches to be ignored when
-                        counting breakpoints. (default: 2)
+                        The maximum length of an intermission in
+                        consecutive substitutions. Intermissions
+                        are stretches to be ignored when counting
+                        breakpoints. (default: 2)
 
   --max-intermission-count NUM, -i NUM
-                        The maximum number of intermissions which will be ignored. Surplus
-                        intermissions count towards the number of breakpoints. (default:
-                        8)
+                        The maximum number of intermissions which
+                        will be ignored. Surplus intermissions
+                        count towards the number of breakpoints.
+                        (default: 8)
 
   --max-name-length NUM, -n NUM
-                        Only show up to NUM characters of sample names. (default: 30)
+                        Only show up to NUM characters of sample
+                        names. (default: 30)
 
   --max-ambiguous NUM, -a NUM
-                        Maximum number of ambiguous nucs in a sample before it gets
-                        ignored. (default: 50)
+                        Maximum number of ambiguous nucs in a
+                        sample before it gets ignored. (default:
+                        50)
 
   --force-all-parents, -f
-                        Force to consider all clades as potential parents for all
-                        sequences. Only useful for debugging.
+                        Force to consider all clades as potential
+                        parents for all sequences. Only useful
+                        for debugging.
 
   --select-sequences INTERVAL, -s INTERVAL
-                        Use only a specific range of inpur sequences. DOES NOT YET WORK
-                        WITH MULTIPLE INPUT FILES. (default: 0-999999)
+                        Use only a specific range of inpur
+                        sequences. DOES NOT YET WORK WITH
+                        MULTIPLE INPUT FILES. (default: 0-999999)
 
   --enable-deletions, -d
                         Include deletions in lineage comparision.
 
   --rebuild-examples, -r
-                        Rebuild the mutations in examples by querying cov-spectrum.org.
+                        Rebuild the mutations in examples by
+                        querying cov-spectrum.org.
 
   --mutation-threshold NUM, -t NUM
-                        Consider mutations with a prevalence of at least NUM as mandatory
-                        for a clade (range 0.05 - 1.0, default: 0.75).
+                        Consider mutations with a prevalence of
+                        at least NUM as mandatory for a clade
+                        (range 0.05 - 1.0, default: 0.75).
 
-  --add-spaces [NUM]    Add spaces between every N colums, which makes it easier to keep
-                        your eye at a fixed place. (default without flag: 0, default with
-                        flag: 5)
+  --add-spaces [NUM]    Add spaces between every N colums, which
+                        makes it easier to keep your eye at a
+                        fixed place. (default without flag: 0,
+                        default with flag: 5)
 
-  --sort-by-id [NUM]    Sort the input sequences by the ID. If you provice NUM, only the
-                        first NUM characters are considered. Usefull if this correlates
-                        with meaning full meta information, e.g. the sequencing lab.
-                        (default without flag: 0, default with flag: 999)
+  --sort-by-id [NUM]    Sort the input sequences by the ID. If
+                        you provice NUM, only the first NUM
+                        characters are considered. Usefull if
+                        this correlates with meaning full meta
+                        information, e.g. the sequencing lab.
+                        (default without flag: 0, default with
+                        flag: 999)
 
-  --verbose, -v         Print some more information, mostly useful for debugging.
+  --verbose, -v         Print some more information, mostly
+                        useful for debugging.
 
-An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-"
-or "-7"). The limts are inclusive. Only positive numbers are supported.
+An Interval can be a single number ("3"), a closed interval
+("2-5" ) or an open one ("4-" or "-7"). The limits are inclusive.
+Only positive numbers are supported.
 
 ```
 <!-- END_MARKER -->
@@ -149,13 +176,12 @@ The initial version of this program was written in cooperation with [@flauschzel
 
 # TODO / IDEAS / PLANS
  * [ ] Move these TODOs into actual issues
- * [ ] add disclaimer and link to pango-designation
+ * [x] add disclaimer and link to pango-designation
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)
  * [X] accept aligned fasta 
    * [x] as input file
    * [ ] as piped stream
  * [ ] If we still accept csv/ssv input, autodetect the delimiter either by file name or by analysing the first line
- * [ ] get rid of `termcolor` which is out only dependency right now
  * [ ] find a way to handle already designated recombinant lineages
  * [ ] Output structured results
    * [ ] csv
@@ -167,11 +193,11 @@ The initial version of this program was written in cooperation with [@flauschzel
  * [ ] take metadata csv
  * [ ] document the output in README
  * [ ] check / fix `--enabled-deletions`
- * [ ] adjustable threshold for mutation prevalence
+ * [x] adjustable threshold for mutation prevalence
  * [ ] new color mode (with background color and monochrome text on top)
  * [ ] new bar mode (with colored lines beneath each sequence, one for each example sequence, and "intermissions" shown in the color of the "surrounding" lineage, but not as bright)
  * [ ] interactive mode, for filtering, reordering, etc.
- * [ ] sort sequences within each block
+ * [x] sort sequences within each block
  * [ ] re-think this whole "intermission" concept
  * [ ] select a single sequence and let the tool refine the choice of parental sequences, not just focusing on commonly known lineages (going up and down in the tree)
  * [ ] use more common terms to describe things (needs feedback from people with actual experience in the field)

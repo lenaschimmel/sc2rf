@@ -62,7 +62,7 @@ def main():
     parser = argparse.ArgumentParser(
         description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', 
         epilog='An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7").'
-        ' The limts are inclusive. Only positive numbers are supported.',
+        ' The limits are inclusive. Only positive numbers are supported.',
         formatter_class=ArgumentAdvancedDefaultsHelpFormatter
     )
     parser.add_argument('input', nargs='*', help='input sequences to test, as aligned .fasta file(s)')
@@ -163,9 +163,10 @@ def main():
         show_matches(used_examples, example_names, samples)
 
 def update_readme(parser: argparse.ArgumentParser):
-    # 90 columns looks nice on GitHub, at least in desktop browsers
+    # on wide monitors, github displays up to 90 columns of preformatted text
+    # but 10% of web users have screens which can only fit 65 characters
     global width_override
-    width_override = 90
+    width_override = 65
    
     help = parser.format_help()
 

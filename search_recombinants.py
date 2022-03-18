@@ -78,9 +78,15 @@ def main():
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
     parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provice NUM, only the first NUM characters are considered. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
+    parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
 
     global args
     args = parser.parse_args()
+
+    if args.update_readme:
+        update_readme(parser)
+        print("Readme was updated. Program exits.")
+        return
 
     if args.rebuild_examples:
         rebuild_examples()
@@ -147,6 +153,37 @@ def main():
 
     for example_names, samples in match_sets.items():
         show_matches(used_examples, example_names, samples)
+
+def update_readme(parser: argparse.ArgumentParser):
+    # 90 columns looks nice on GitHub, at least in desktop browsers
+    parser.width = 90
+    help = parser.format_help()
+
+    new_lines = []
+
+    between_markers = False
+
+    with open("README.md", "rt") as old_readme:
+        for line in old_readme:
+            if line.strip() == "<!-- BEGIN_MARKER -->":
+                print("FOUND BEGIN\n")
+                between_markers = True
+                new_lines.append('<!-- BEGIN_MARKER -->')
+
+            if line.strip() == "<!-- END_MARKER -->":
+                print("FOUND END")
+                between_markers = False
+                new_lines.append('```\n')
+                new_lines.append(help + '\n')
+                new_lines.append('```\n')
+
+            if not between_markers:
+                new_lines.append(line)
+
+    with open("README.md", "wt") as new_readme:
+        new_readme.writelines(new_lines)
+            
+
 
 def vprint(text: str):
     if args.verbose:

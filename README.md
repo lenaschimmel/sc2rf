@@ -153,14 +153,16 @@ Only positive numbers are supported.
 By default, a lot filters are active to show only the likely recombinants, so that you can input 10000s of sequences and just get output for the interesting ones. If you want, you can disable all filters like that, which is only recommended for small input files with less than 100 sequences:
 
 ```
-search_recombinants.py --parents 1-35 --breakpoints 0-100 --unique 0 --max-ambiguous 10000 <your_filename.fasta>
+search_recombinants.py --parents 1-35 --breakpoints 0-100 \
+--unique 0 --max-ambiguous 10000 <your_filename.fasta>
 ```
 
 or even
 
 ```
-search_recombinants.py --parents 1-35 --breakpoints 0-100 --unique 0 --max-ambiguous 10000 \
---force-all-parents --clades all <your_filename.fasta>
+search_recombinants.py --parents 1-35 --breakpoints 0-100 \
+--unique 0 --max-ambiguous 10000 --force-all-parents \
+--clades all <your_filename.fasta>
 ```
 
 # Interpreting the output

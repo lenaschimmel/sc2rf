@@ -34,7 +34,8 @@ search_recombinants.py <your_filename.fasta>
 # Advanced Usage
 You can execute `search_recombinants.py -h` to get a help message like this one, probably even more up-to-date:
 
-<!-- BEGIN_MARKER -->```
+<!-- BEGIN_MARKER -->
+```
 usage: search_recombinants.py [-h] [--parents INTERVAL] [--breakpoints INTERVAL] [--clades [CLADES [CLADES ...]]] [--unique NUM] [--max-intermission-length NUM] [--max-intermission-count NUM]
                               [--max-name-length NUM] [--max-ambiguous NUM] [--force-all-parents] [--select-sequences INTERVAL] [--enable-deletions] [--rebuild-examples] [--mutation-threshold NUM]
                               [--add-spaces [NUM]] [--sort-by-id [NUM]] [--verbose]

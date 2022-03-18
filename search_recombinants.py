@@ -166,12 +166,10 @@ def update_readme(parser: argparse.ArgumentParser):
     with open("README.md", "rt") as old_readme:
         for line in old_readme:
             if line.strip() == "<!-- BEGIN_MARKER -->":
-                print("FOUND BEGIN\n")
                 between_markers = True
-                new_lines.append('<!-- BEGIN_MARKER -->')
+                new_lines.append('<!-- BEGIN_MARKER -->\n')
 
             if line.strip() == "<!-- END_MARKER -->":
-                print("FOUND END")
                 between_markers = False
                 new_lines.append('```\n')
                 new_lines.append(help + '\n')

@@ -10,6 +10,8 @@ import requests
 
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
+width_override = None
+
 # I removed "ORF" from the names, because often we only see the first one or two letters of a name, and "ORF" providex no information
 genes = {
     '1a': (  266, 13468),
@@ -47,6 +49,7 @@ class Interval:
 
 def main():
     global mappings
+    global width_override
 
     # This strange line should enable handling of 
     # ANSI / VT 100 codes in windows terminal
@@ -156,7 +159,9 @@ def main():
 
 def update_readme(parser: argparse.ArgumentParser):
     # 90 columns looks nice on GitHub, at least in desktop browsers
-    parser.width = 90
+    global width_override
+    width_override = 90
+   
     help = parser.format_help()
 
     new_lines = []
@@ -658,6 +663,22 @@ class ArgumentAdvancedDefaultsHelpFormatter(argparse.HelpFormatter):
     this formatter also shows 'const' values if they are present, and
     adds blank lines between actions.
     """
+
+    def __init__(self,
+                 prog,
+                 indent_increment=2,
+                 max_help_position=24,
+                 width=None):
+
+        global width_override
+
+        if width_override:
+            width = width_override
+
+        super().__init__(prog,
+                 indent_increment,
+                 max_help_position,
+                 width)
 
     def _get_help_string(self, action):
         help = action.help

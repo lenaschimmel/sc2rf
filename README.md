@@ -34,6 +34,7 @@ search_recombinants.py <your_filename.fasta>
 # Advanced Usage
 You can execute `search_recombinants.py -h` to get a help message like this one, probably even more up-to-date:
 
+<!-- BEGIN_MARKER -->
 ```
 usage: search_recombinants.py [-h] [--parents INTERVAL] [--breakpoints INTERVAL]
                               [--clades [{all,20I,20H,...} ...]]
@@ -97,6 +98,7 @@ optional arguments:
 An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one
 ("4-" or "-7"). The limts are inclusive. Only positive numbers are supported.
 ```
+<!-- END_MARKER -->
 
 # No output / some sequences not shown
 By default, a lot filters are active to show only the likely recombinants, so that you can input 10000s of sequences and just get output for the interesting ones. If you want, you can disable all filters like that, which is only recommended for small input files with less than 100 sequences:

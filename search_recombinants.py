@@ -77,6 +77,7 @@ def main():
     parser.add_argument('--force-all-parents', '-f', action='store_true', help='Force to consider all clades as potential parents for all sequences. Only useful for debugging.')
     parser.add_argument('--select-sequences', '-s', default='0-999999', metavar='INTERVAL', type=Interval, help='Use only a specific range of input sequences. DOES NOT YET WORK WITH MULTIPLE INPUT FILES.')
     parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
+    parser.add_argument('--show-private-mutations', action='store_true', help='Display mutations which are not in any of the potential parental clades.')
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
     parser.add_argument('--mutation-threshold', '-t', metavar='NUM', default=0.75, type=float, help='Consider mutations with a prevalence of at least NUM as mandatory for a clade (range 0.05 - 1.0, default: %(default)s).')
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
@@ -371,17 +372,14 @@ def show_matches(all_examples, example_names, samples):
     examples = [all_examples[name] for name in example_names]
 
     coords = set()
-    refs = dict() 
     for ex in examples:
         for sub in ex['subs_list']:
             coords.add(sub.coordinate)
-            refs[sub.coordinate] = sub.ref;
-   
-    # show all sample mutations:
-    # for sa in samples:
-    #     for sub in sa['subs_list']:
-    #         coords.add(sub.coordinate)
-    #         refs[sub.coordinate] = sub.ref;
+
+    if args.show_private_mutations:
+        for sa in samples:
+            for sub in sa['subs_list']:
+                coords.add(sub.coordinate)
     
     ordered_coords = list(coords)
     ordered_coords.sort()
@@ -456,7 +454,6 @@ def show_matches(all_examples, example_names, samples):
                             matching_exs.append(ex['name'])
 
                     text = '•'
-                    #text = refs[coord]
                     fg = 'white'
                     bg = None
                     attrs = []
@@ -577,7 +574,7 @@ def show_matches(all_examples, example_names, samples):
         for c, coord in enumerate(ordered_coords):
             if args.add_spaces and c % args.add_spaces == 0:
                 prunt(" ")
-            prunt(refs[coord])
+            prunt(reference[coord])
         print()
         print()
 

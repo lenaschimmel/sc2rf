@@ -47,6 +47,7 @@ usage: search_recombinants.py [-h] [--parents INTERVAL]
                               [--force-all-parents]
                               [--select-sequences INTERVAL]
                               [--enable-deletions]
+                              [--show-private-mutations]
                               [--rebuild-examples]
                               [--mutation-threshold NUM]
                               [--add-spaces [NUM]]
@@ -116,6 +117,10 @@ optional arguments:
 
   --enable-deletions, -d
                         Include deletions in lineage comparision.
+
+  --show-private-mutations
+                        Display mutations which are not in any of
+                        the potential parental clades.
 
   --rebuild-examples, -r
                         Rebuild the mutations in examples by

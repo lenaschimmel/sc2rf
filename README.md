@@ -110,7 +110,7 @@ optional arguments:
                         for debugging.
 
   --select-sequences INTERVAL, -s INTERVAL
-                        Use only a specific range of inpur
+                        Use only a specific range of input
                         sequences. DOES NOT YET WORK WITH
                         MULTIPLE INPUT FILES. (default: 0-999999)
 
@@ -133,8 +133,8 @@ optional arguments:
 
   --sort-by-id [NUM]    Sort the input sequences by the ID. If
                         you provide NUM, only the first NUM
-                        characters are considered. Usefull if
-                        this correlates with meaning full meta
+                        characters are considered. Useful if this
+                        correlates with meaning full meta
                         information, e.g. the sequencing lab.
                         (default without flag: 0, default with
                         flag: 999)

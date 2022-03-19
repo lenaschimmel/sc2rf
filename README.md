@@ -32,7 +32,7 @@ search_recombinants.py <your_filename.fasta>
 ```
 
 # Advanced Usage
-You can execute `search_recombinants.py -h` to get a help message like this one, probably even more up-to-date:
+You can execute `search_recombinants.py -h` to get excactly this help message:
 
 <!-- BEGIN_MARKER -->
 ```
@@ -132,7 +132,7 @@ optional arguments:
                         default with flag: 5)
 
   --sort-by-id [NUM]    Sort the input sequences by the ID. If
-                        you provice NUM, only the first NUM
+                        you provide NUM, only the first NUM
                         characters are considered. Usefull if
                         this correlates with meaning full meta
                         information, e.g. the sequencing lab.

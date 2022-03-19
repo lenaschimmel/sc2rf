@@ -80,7 +80,7 @@ def main():
     parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
     parser.add_argument('--mutation-threshold', '-t', metavar='NUM', default=0.75, type=float, help='Consider mutations with a prevalence of at least NUM as mandatory for a clade (range 0.05 - 1.0, default: %(default)s).')
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
-    parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provice NUM, only the first NUM characters are considered. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
+    parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provide NUM, only the first NUM characters are considered. Usefull if this correlates with meaning full meta information, e.g. the sequencing lab.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
     parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
     

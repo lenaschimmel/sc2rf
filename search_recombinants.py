@@ -33,6 +33,7 @@ genes = {
 class Interval:
     def __init__(self, string):
         # TODO allow multiple separators, see https://stackoverflow.com/questions/1059559/split-strings-into-words-with-multiple-word-boundary-delimiters
+        self.original_string = string
         parts = string.split('-')
         if len(parts) == 1:
             self.min = int(parts[0])
@@ -50,6 +51,9 @@ class Interval:
             return False
             
         return True
+
+    def __str__(self):
+        return self.original_string
 
 
 def main():
@@ -72,6 +76,7 @@ def main():
     )
     parser.add_argument('input', nargs='*', help='input sequence(s) to test, as aligned .fasta file(s)')
     parser.add_argument('--primers', nargs='*',  metavar='PRIMER', help='Filenames of primer set(s) to visualize. The .bed formats for ARTIC and easyseq are recognized and supported.')
+    parser.add_argument('--primer-intervals', nargs='*',  metavar='INTERVAL', type=Interval, help='Coordinate intervals in which to visualize primers.')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed number of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
     parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21K','21L', '21BA3'], help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
@@ -315,6 +320,9 @@ class Amplicon:
         self.amp_start = None
         self.amp_end = None
 
+    def __str__(self):
+        return f"Amplicon {self.number} ({self.start} to {self.end})"
+
     def add_primer(self, primer):
         if primer.direction == '+':
             self.left_primers.append(primer)
@@ -358,7 +366,7 @@ class Amplicon:
                     return '»'
 
         return '-'
-        
+    
     def overlaps_coord(self, coord: int, actual_amplicon: bool):
         if actual_amplicon:
             return coord >= self.amp_start and coord <= self.amp_end
@@ -563,12 +571,25 @@ def show_matches(all_examples, example_names, samples):
                         if not amplicon_matches:
                             continue
 
+                    # check if enough of the actual amplicon range is shown to display its number
+                    name_len = len(str(amplicon.number))
                     matched_coords = 0
                     for coord in coords:
-                        if coord >= amplicon.amp_start and coord <= amplicon.amp_end:
+                        if amplicon.overlaps_coord(coord, True):
                             matched_coords += 1
-                    if matched_coords < 2:
-                        coords.update(range(amplicon.amp_start, amplicon.amp_start + 2))
+                    if matched_coords < name_len:
+                        coords.update(range(amplicon.amp_start, amplicon.amp_start + name_len))
+
+                    # make sure that every alt primer is shown for at least one coord
+                    # otherwise mismatches in the primary primer may look as if they
+                    # would not be compensated by an alt primer
+                    for primer in (amplicon.left_primers + amplicon.right_primers):
+                        if primer.alt:
+                            coords.add(primer.start)
+
+                    # if amplicon.number == 76:
+                    #     coords.update(range(amplicon.start, amplicon.end + 1))
+
     ordered_coords = list(coords)
     ordered_coords.sort()
     
@@ -783,16 +804,16 @@ def show_matches(all_examples, example_names, samples):
                                     current_name = str(amplicon.number)
                                     text_index = 0
                                 current_color = amplicon.color
-                                
-                        # Do this once or twice, depending on space insertion
-                        for i in range(1 + (args.add_spaces and c % args.add_spaces == 0)):
-                            
-                            if char == '-' and len(current_name) > text_index:
-                                char = current_name[text_index]
-                                text_index += 1
-                            cprint(char, current_color, end='')
 
-                    print(" ")
+                        if args.add_spaces and c % args.add_spaces == 0:
+                            prunt(' ')
+
+                        if char == '-' and len(current_name) > text_index:
+                            char = current_name[text_index]
+                            text_index += 1
+                        cprint(char, current_color, end='')
+
+                    print(' ')
             
                 print()
 
@@ -817,7 +838,7 @@ def show_matches(all_examples, example_names, samples):
                 if(ex['subs_dict'].get(coord)):
                     prunt(ex['subs_dict'][coord].mut, current_color)
                 else:
-                    prunt(".")
+                    prunt("•")
             print()
         print()
 

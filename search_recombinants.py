@@ -44,7 +44,12 @@ class Interval:
             raise ValueError('invalid interval: ' + string)
 
     def matches(self, num):
-        return num >= self.min and num <= self.max
+        if self.min and num < self.min:
+            return False
+        if self.max and num > self.max:
+            return False
+            
+        return True
 
 
 def main():

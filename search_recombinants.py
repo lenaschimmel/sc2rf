@@ -359,6 +359,19 @@ class Amplicon:
 
         return '-'
         
+    def overlaps_coord(self, coord: int, actual_amplicon: bool):
+        if actual_amplicon:
+            return coord >= self.amp_start and coord <= self.amp_end
+        else:
+            return coord >= self.start and coord <= self.end
+
+    def overlaps_interval(self, interval: Interval):
+        if interval.max and self.start > interval.max:
+            return False
+        if interval.min and self.end < interval.min:
+            return False
+        return True
+        
 
 def read_bed(path):
     pools = dict()
@@ -540,6 +553,16 @@ def show_matches(all_examples, example_names, samples):
         for name, primer_set in primer_sets.items():
             for pool in primer_set.values():
                 for amplicon in pool.values():
+                    if args.primer_intervals:
+                        # check if amplicon should be shown at all, or if it's outside primer_intervals
+                        amplicon_matches = False
+                        for interval in args.primer_intervals:
+                            if amplicon.overlaps_interval(interval):
+                                amplicon_matches = True
+                                break
+                        if not amplicon_matches:
+                            continue
+
                     matched_coords = 0
                     for coord in coords:
                         if coord >= amplicon.amp_start and coord <= amplicon.amp_end:
@@ -744,7 +767,17 @@ def show_matches(all_examples, example_names, samples):
                     for c, coord in enumerate(ordered_coords):
                         char = ' '
                         for amplicon in pool.values():
-                            if coord >= amplicon.start and coord <= amplicon.end:
+
+                            if args.primer_intervals:
+                                amplicon_matches = False
+                                for interval in args.primer_intervals:
+                                    if amplicon.overlaps_interval(interval):
+                                        amplicon_matches = True
+                                        break
+                                if not amplicon_matches:
+                                    continue
+
+                            if amplicon.overlaps_coord(coord, False):
                                 char = amplicon.get_char(coord)
                                 if current_name != str(amplicon.number):
                                     current_name = str(amplicon.number)

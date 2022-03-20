@@ -38,6 +38,7 @@ You can execute `search_recombinants.py -h` to get excactly this help message:
 ```
 usage: search_recombinants.py [-h]
                               [--primers [PRIMER [PRIMER ...]]]
+                              [--primer-intervals [INTERVAL [INTERVAL ...]]]
                               [--parents INTERVAL]
                               [--breakpoints INTERVAL]
                               [--clades [CLADES [CLADES ...]]]
@@ -71,6 +72,10 @@ optional arguments:
                         The .bed formats for ARTIC and easyseq
                         are recognized and supported. (default:
                         None)
+
+  --primer-intervals [INTERVAL [INTERVAL ...]]
+                        Coordinate intervals in which to
+                        visualize primers. (default: None)
 
   --parents INTERVAL, -p INTERVAL
                         Allowed number of potential parents of a

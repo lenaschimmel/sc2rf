@@ -36,7 +36,9 @@ You can execute `search_recombinants.py -h` to get excactly this help message:
 
 <!-- BEGIN_MARKER -->
 ```
-usage: search_recombinants.py [-h] [--parents INTERVAL]
+usage: search_recombinants.py [-h]
+                              [--primers [PRIMER [PRIMER ...]]]
+                              [--parents INTERVAL]
                               [--breakpoints INTERVAL]
                               [--clades [CLADES [CLADES ...]]]
                               [--unique NUM]
@@ -58,11 +60,17 @@ Analyse SARS-CoV-2 sequences for potential, unknown recombinant
 variants.
 
 positional arguments:
-  input                 input sequences to test, as aligned
+  input                 input sequence(s) to test, as aligned
                         .fasta file(s) (default: None)
 
 optional arguments:
   -h, --help            show this help message and exit
+
+  --primers [PRIMER [PRIMER ...]]
+                        Filenames of primer set(s) to visualize.
+                        The .bed formats for ARTIC and easyseq
+                        are recognized and supported. (default:
+                        None)
 
   --parents INTERVAL, -p INTERVAL
                         Allowed number of potential parents of a

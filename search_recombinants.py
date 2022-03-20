@@ -65,7 +65,8 @@ def main():
         ' The limits are inclusive. Only positive numbers are supported.',
         formatter_class=ArgumentAdvancedDefaultsHelpFormatter
     )
-    parser.add_argument('input', nargs='*', help='input sequences to test, as aligned .fasta file(s)')
+    parser.add_argument('input', nargs='*', help='input sequence(s) to test, as aligned .fasta file(s)')
+    parser.add_argument('--primers', nargs='*',  metavar='PRIMER', help='Filenames of primer set(s) to visualize. The .bed formats for ARTIC and easyseq are recognized and supported.')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed number of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
     parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21K','21L', '21BA3'], help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
@@ -127,7 +128,14 @@ def main():
             all_samples[key] = val
     vprint("Done.")
 
-
+    global primer_sets
+    primer_sets = dict()
+    if args.primers:
+        vprint("Reading primers.")
+        for path in args.primers:
+            pools = read_bed(path)
+            primer_sets[path] = pools
+        vprint("Done.")
 
     used_examples = dict()
     for ex_name, ex in all_examples.items():
@@ -276,6 +284,148 @@ def read_examples(path):
             }
         return sequences
 
+class Primer(NamedTuple):
+    start: int
+    end: int
+    direction: str
+    alt: bool
+    name: str
+    sequence: str
+
+class Amplicon:
+    left_primers: list
+    right_primer: list
+    number: int
+    color: str
+    start: int
+    end: int
+
+    def __init__(self, number: int):
+        self.number = number
+        self.left_primers = list()
+        self.right_primers = list()
+        self.color = get_color(number)
+        self.start = None
+        self.end = None
+        self.amp_start = None
+        self.amp_end = None
+
+    def add_primer(self, primer):
+        if primer.direction == '+':
+            self.left_primers.append(primer)
+            if self.amp_start:
+                self.amp_start = max(self.amp_start, primer.end + 1)
+            else:
+                self.amp_start = primer.end + 1
+        else:
+            self.right_primers.append(primer)
+            if self.amp_end:
+                self.amp_end = min(self.amp_end, primer.start - 1)
+            else:
+                self.amp_end = primer.start - 1
+        
+        if self.start:
+            self.start = min(self.start, primer.start)
+        else:
+            self.start = primer.start  
+
+        if self.end:
+            self.end = max(self.end, primer.end)
+        else:
+            self.end = primer.end
+
+    def get_char(self, coord: int):
+        if coord <= self.start or coord >= self.end:
+            return ' '
+
+        for primer in self.left_primers:
+            if primer.start <= coord and primer.end >= coord:
+                if primer.alt:
+                    return '‹'
+                else:
+                    return '«'
+
+        for primer in self.right_primers:
+           if primer.start <= coord and primer.end >= coord:
+                if primer.alt:
+                    return '›'
+                else:
+                    return '»'
+
+        return '-'
+        
+
+def read_bed(path):
+    pools = dict()
+    index = 0
+    current_name = None
+    with open(path, newline='') as bed:
+        for line in bed:
+            parts = line.strip().split("\t")
+
+            if(parts[0] == parts[3]): # easyseq format
+                name = parts[6]
+                name_parts = name.split("_")
+                amplicon_index = int(name_parts[1])
+                amplicon = Amplicon(amplicon_index)
+                left_primer = Primer(
+                    start = int(parts[1]),
+                    end = int(parts[2]),
+                    name = "left_" + str(amplicon_index),
+                    alt = False,
+                    direction = "+",
+                    sequence = None
+                )
+                right_primer = Primer(
+                    start = int(parts[4]),
+                    end = int(parts[5]),
+                    name = "right_" + str(amplicon_index),
+                    alt = False,
+                    direction = "-",
+                    sequence = None
+                )
+                amplicon.add_primer(left_primer)
+                amplicon.add_primer(right_primer)
+
+                pool_index = (amplicon_index + 1) % 2 + 1
+
+                if not pools.get(pool_index):
+                    pools[pool_index] = dict()
+
+                pools[pool_index][amplicon_index] = amplicon
+
+            else: 
+                # ARTIC format
+                name = parts[3]
+                name_parts = name.split("_")
+                amplicon_index = int(name_parts[1])
+                pool_index = parts[4]
+                direction = parts[5]
+
+                pool = pools.get(pool_index)
+                if not pool:
+                    pool = dict()
+                    pools[pool_index] = pool
+
+                amplicon = pool.get(amplicon_index)
+                if not amplicon:
+                    amplicon = Amplicon(amplicon_index)
+                    pool[amplicon_index] = amplicon
+
+                primer = Primer(
+                    start = int(parts[1]),
+                    end = int(parts[2]),
+                    name = parts[3],
+                    alt = len(name_parts) == 4,
+                    direction = direction,
+                    sequence = parts[6] if 6 < len(parts) else None
+                )
+
+                amplicon.add_primer(primer)
+
+
+    return pools
+
 def read_fasta(path, index_range):
     sequences = dict()
     index = 0
@@ -380,10 +530,20 @@ def show_matches(all_examples, example_names, samples):
         for sa in samples:
             for sub in sa['subs_list']:
                 coords.add(sub.coordinate)
-    
+
+    if args.primers:
+        for name, primer_set in primer_sets.items():
+            for pool in primer_set.values():
+                for amplicon in pool.values():
+                    matched_coords = 0
+                    for coord in coords:
+                        if coord >= amplicon.amp_start and coord <= amplicon.amp_end:
+                            matched_coords += 1
+                    if matched_coords < 2:
+                        coords.update(range(amplicon.amp_start, amplicon.amp_start + 2))
     ordered_coords = list(coords)
     ordered_coords.sort()
-
+    
     color_by_name = dict()
     color_index = 0
     for ex in examples:
@@ -567,6 +727,36 @@ def show_matches(all_examples, example_names, samples):
                 text_index += 1
 
         print(" ")
+
+        if args.primers:
+            ###### SHOW PRIMERS
+
+            prunt('\n')
+            for name, primer_set in primer_sets.items():
+                for index, pool in primer_set.items():
+                    prunt(fixed_len(f"{name}, pool {index}", ml + 1))
+
+                    for c, coord in enumerate(ordered_coords):
+                        char = ' '
+                        for amplicon in pool.values():
+                            if coord >= amplicon.start and coord <= amplicon.end:
+                                char = amplicon.get_char(coord)
+                                if current_name != str(amplicon.number):
+                                    current_name = str(amplicon.number)
+                                    text_index = 0
+                                current_color = amplicon.color
+                                
+                        # Do this once or twice, depending on space insertion
+                        for i in range(1 + (args.add_spaces and c % args.add_spaces == 0)):
+                            
+                            if char == '-' and len(current_name) > text_index:
+                                char = current_name[text_index]
+                                text_index += 1
+                            cprint(char, current_color, end='')
+
+                    print(" ")
+            
+                print()
 
         ###### SHOW REF
         

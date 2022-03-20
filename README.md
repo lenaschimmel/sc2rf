@@ -69,7 +69,7 @@ optional arguments:
 
   --primers [PRIMER [PRIMER ...]]
                         Filenames of primer set(s) to visualize.
-                        The .bed formats for ARTIC and easyseq
+                        The .bed formats for ARTIC and EasySeq
                         are recognized and supported. (default:
                         None)
 
@@ -191,6 +191,9 @@ _To be written..._
  * `reference.fasta` is taken from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files), see [NCBI](https://www.ncbi.nlm.nih.gov/nuccore/MN908947) for attribution. 
  * `mapping.csv` is a modified version of the table on the [covariants homepage](https://covariants.org/) by Nextstrain.
  * Example output / screenshot based on Sequences published by the [German Robert-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland).
+ * Primers:
+   * [ARTIC primers](https://github.com/artic-network/artic-ncov2019) CC-BY-4.0 by the ARTICnetwork project
+   * [EasySeq primers](https://github.com/JordyCoolen/easyseq_covid19) by Coolen, J. P., Wolters, F., Tostmann, A., van Groningen, L. F., Bleeker-Rovers, C. P., Tan, E. C., ... & Melchers, W. J.
 
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
 

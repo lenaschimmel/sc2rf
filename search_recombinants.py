@@ -75,7 +75,7 @@ def main():
         formatter_class=ArgumentAdvancedDefaultsHelpFormatter
     )
     parser.add_argument('input', nargs='*', help='input sequence(s) to test, as aligned .fasta file(s)')
-    parser.add_argument('--primers', nargs='*',  metavar='PRIMER', help='Filenames of primer set(s) to visualize. The .bed formats for ARTIC and easyseq are recognized and supported.')
+    parser.add_argument('--primers', nargs='*',  metavar='PRIMER', help='Filenames of primer set(s) to visualize. The .bed formats for ARTIC and EasySeq are recognized and supported.')
     parser.add_argument('--primer-intervals', nargs='*',  metavar='INTERVAL', type=Interval, help='Coordinate intervals in which to visualize primers.')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed number of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
@@ -389,7 +389,7 @@ def read_bed(path):
         for line in bed:
             parts = line.strip().split("\t")
 
-            if(parts[0] == parts[3]): # easyseq format
+            if(parts[0] == parts[3]): # EasySeq format
                 name = parts[6]
                 name_parts = name.split("_")
                 amplicon_index = int(name_parts[1])

@@ -764,7 +764,7 @@ def show_matches(all_examples, example_names, samples):
         for c, coord in enumerate(ordered_coords):
             if args.add_spaces and c % args.add_spaces == 0:
                 prunt(" ")
-            prunt(reference[coord])
+            prunt(reference[coord-1])
         print()
         print()
 

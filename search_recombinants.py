@@ -914,7 +914,13 @@ def calculate_relations(examples):
             if other is not example:
                 union = union | (other['subs_set'])
         example['unique_subs_set'] = example['subs_set'] - union
-        vprint(f"Clade  {example['name']} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
+        unique_count = len(example['unique_subs_set'])
+        color = None
+        if unique_count < 5:
+            color = "yellow"
+        if unique_count < 3:
+            color = "red"
+        vprint(colored(f"Clade  {example['name']} has {len(example['subs_set'])} mutations, of which {unique_count} are unique.", color))
 
 class ArgumentAdvancedDefaultsHelpFormatter(argparse.HelpFormatter):
     """In contrast to ArgumentDefaultsHelpFormatter from argparse,

@@ -187,7 +187,7 @@ search_recombinants.py --parents 1-35 --breakpoints 0-100 \
 _To be written..._
 
 # Source material attribution
- * `virus_properties.json` contains data from [LAPIS / cov-](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).
+ * `virus_properties.json` contains data from [LAPIS / cov-spectrum](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).
  * `reference.fasta` is taken from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files), see [NCBI](https://www.ncbi.nlm.nih.gov/nuccore/MN908947) for attribution. 
  * `mapping.csv` is a modified version of the table on the [covariants homepage](https://covariants.org/) by Nextstrain.
  * Example output / screenshot based on Sequences published by the [German Robert-Koch-Institut](https://github.com/robert-koch-institut/SARS-CoV-2-Sequenzdaten_aus_Deutschland).

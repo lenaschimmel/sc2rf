@@ -194,6 +194,7 @@ _To be written..._
  * Primers:
    * [ARTIC primers](https://github.com/artic-network/artic-ncov2019) CC-BY-4.0 by the ARTICnetwork project
    * [EasySeq primers](https://github.com/JordyCoolen/easyseq_covid19) by Coolen, J. P., Wolters, F., Tostmann, A., van Groningen, L. F., Bleeker-Rovers, C. P., Tan, E. C., ... & Melchers, W. J.
+   * [midnight primers](https://zenodo.org/record/3897530#.Xuk7oGpLjep) CC-BY-4.0 by Silander, Olin K, Massey University
 
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
 

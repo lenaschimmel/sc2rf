@@ -55,6 +55,7 @@ usage: search_recombinants.py [-h]
                               [--mutation-threshold NUM]
                               [--add-spaces [NUM]]
                               [--sort-by-id [NUM]] [--verbose]
+                              [--ansi]
                               [input [input ...]]
 
 Analyse SARS-CoV-2 sequences for potential, unknown recombinant
@@ -160,6 +161,9 @@ optional arguments:
 
   --verbose, -v         Print some more information, mostly
                         useful for debugging.
+
+  --ansi                Use only ASCII characters to be
+                        compatible with ansilove.
 
 An Interval can be a single number ("3"), a closed interval
 ("2-5" ) or an open one ("4-" or "-7"). The limits are inclusive.

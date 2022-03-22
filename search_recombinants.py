@@ -60,6 +60,9 @@ class Interval:
 def main():
     global mappings
     global width_override
+    global dot_character
+
+    dot_character = '•'
 
     # This strange line should enable handling of 
     # ANSI / VT 100 codes in windows terminal
@@ -95,10 +98,14 @@ def main():
     parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provide NUM, only the first NUM characters are considered. Useful if this correlates with meaning full meta information, e.g. the sequencing lab.')
     #parser.add_argument('--sort-by-first-breakpoint', action='store_true', help='Does what it says.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
+    parser.add_argument('--ansi', action='store_true', help='Use only ASCII characters to be compatible with ansilove.')
     parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
     
     global args
     args = parser.parse_args()
+
+    if args.ansi:
+        dot_character = '.'
 
     if args.update_readme:
         update_readme(parser)
@@ -354,16 +361,16 @@ class Amplicon:
         for primer in self.left_primers:
             if primer.start <= coord and primer.end >= coord:
                 if primer.alt:
-                    return '‹'
+                    return '{' if args.ansi else '‹' 
                 else:
-                    return '«'
+                    return '<' if args.ansi else '«'
 
         for primer in self.right_primers:
            if primer.start <= coord and primer.end >= coord:
                 if primer.alt:
-                    return '›'
+                    return '}' if args.ansi else '›'
                 else:
-                    return '»'
+                    return '>' if args.ansi else '»'
 
         return '-'
     
@@ -660,7 +667,7 @@ def show_matches(examples, samples):
                         if not ex['subs_dict'].get(coord):
                             matching_exs.append(ex['name'])
 
-                    text = '•'
+                    text = dot_character
                     fg = 'white'
                     bg = None
                     attrs = []
@@ -836,7 +843,7 @@ def show_matches(examples, samples):
                 if(ex['subs_dict'].get(coord)):
                     prunt(ex['subs_dict'][coord].mut, current_color)
                 else:
-                    prunt("•")
+                    prunt(dot_character)
             print()
         print()
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import csv
+import enum
 from typing import NamedTuple
 from termcolor import colored, cprint
 import json
@@ -66,8 +67,7 @@ def main():
     os.system('')
 
     mappings = read_mappings('mapping.csv')
-    clade_names = list(mappings['by_clade'].keys())
-
+    
     parser = argparse.ArgumentParser(
         description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', 
         epilog='An Interval can be a single number ("3"), a closed interval ("2-5" ) or an open one ("4-" or "-7").'
@@ -79,7 +79,7 @@ def main():
     parser.add_argument('--primer-intervals', nargs='*',  metavar='INTERVAL', type=Interval, help='Coordinate intervals in which to visualize primers.')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed number of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
-    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J','21A', '21K','21L', '21BA3'], help='List of clades which are considered as potential parents. Use Nextclade names, i.e. "21A". Also accepts "all".')
+    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J', '21I', '21J', 'BA.1', 'BA.2', 'BA.3'], help='List of variants which are considered as potential parents. Use Nextstrain clades (like "21B"), or Pango Lineages (like "B.1.617.1") or both. Also accepts "all".')
     parser.add_argument('--unique', '-u', default=2, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
     parser.add_argument('--max-intermission-length', '-l', metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
     parser.add_argument('--max-intermission-count', '-i', metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
@@ -93,6 +93,7 @@ def main():
     parser.add_argument('--mutation-threshold', '-t', metavar='NUM', default=0.75, type=float, help='Consider mutations with a prevalence of at least NUM as mandatory for a clade (range 0.05 - 1.0, default: %(default)s).')
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
     parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provide NUM, only the first NUM characters are considered. Useful if this correlates with meaning full meta information, e.g. the sequencing lab.')
+    #parser.add_argument('--sort-by-first-breakpoint', action='store_true', help='Does what it says.')
     parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
     parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
     
@@ -113,14 +114,6 @@ def main():
         print("Input sequences must be provided, except when rebuilding the examples. Use --help for more info. Program exits.")
         return
 
-    used_clades = args.clades
-    if used_clades == ['all']:
-        used_clades = clade_names
-
-    if args.force_all_parents and not args.parents.matches(len(used_clades)):
-        print("The number of allowed parents, the number of selected clades and the --force-all-parents conflict so that the results must be empty.")
-        return
-
     if args.mutation_threshold < 0.05 or args.mutation_threshold > 1.0 :
         print("mutation-threshold must be between 0.05 and 1.0")
         return
@@ -129,6 +122,20 @@ def main():
     vprint("Reading reference genome, lineage definitions...")
     reference = read_fasta('reference.fasta', None)['MN908947 (Wuhan-Hu-1/2019)']
     all_examples = read_examples('virus_properties.json')
+
+    used_examples = []
+    if 'all' in args.clades:
+        used_examples = all_examples
+    else:
+        for example in all_examples:
+            if len(example['NextstrainClade']) and example['NextstrainClade'] in args.clades:
+                used_examples.append(example)
+            elif len(example['PangoLineage']) and example['PangoLineage'] in args.clades:
+                used_examples.append(example)
+
+    if args.force_all_parents and not args.parents.matches(len(used_examples)):
+        print("The number of allowed parents, the number of selected clades and the --force-all-parents conflict so that the results must be empty.")
+        return
 
     vprint("Done.\nReading actual input.")
     all_samples = dict()
@@ -147,29 +154,24 @@ def main():
             primer_sets[path] = pools
         vprint("Done.")
 
-    used_examples = dict()
-    for ex_name, ex in all_examples.items():
-        if ex_name in used_clades:
-            used_examples[ex_name] = ex
-
     calculate_relations(used_examples)
 
     match_sets = dict()
 
     vprint("Scanning input for matches against linege definitons...")
     for sa_name, sa in all_samples.items():
-        matching_example_names = []
+        matching_example_indices = []
         if args.force_all_parents:
-            matching_example_names = used_examples.keys()
+            matching_example_indices = range(0, len(used_examples))
         else:    
-            for ex_name, ex in used_examples.items():
+            for i, ex in enumerate(used_examples):
                 matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
                 if matches_count >= args.unique: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
-                    matching_example_names.append(ex_name)# 
+                    matching_example_indices.append(i) 
 
-        matching_examples_tup = tuple(matching_example_names)
+        matching_examples_tup = tuple(matching_example_indices)
 
-        if args.parents.matches(len(matching_example_names)):
+        if args.parents.matches(len(matching_example_indices)):
             #print(f"{sa_name} is a possible recombinant of {len(matching_example_names)} lineages: {matching_example_names}")
             if match_sets.get(matching_examples_tup):
                 match_sets[matching_examples_tup].append(sa)
@@ -178,8 +180,8 @@ def main():
 
     vprint("Done.\nPriniting detailed analysis:\n\n")
 
-    for example_names, samples in match_sets.items():
-        show_matches(used_examples, example_names, samples)
+    for matching_example_indices, samples in match_sets.items():
+        show_matches([used_examples[i] for i in matching_example_indices], samples)
 
 def update_readme(parser: argparse.ArgumentParser):
     # on wide monitors, github displays up to 90 columns of preformatted text
@@ -221,78 +223,76 @@ def rebuild_examples():
     print("Rebuilding examples from cov-spectrum.org...")
     with open('virus_properties.json', newline='', mode='w') as jsonfile:
 
-        the_map = {}
+        the_list = []
 
-        for clade, clade_props in mappings['by_clade'].items():
-            pango = clade_props['PangoLineage']
-            print(f"Fetching data for {clade} / {pango}")
-            r = requests.get(f'https://lapis.cov-spectrum.org/open/v1/sample/nuc-mutations?pangoLineage={pango}*&minProportion=0.05')
+        for variant_props in mappings['list']:
+            pango = variant_props['PangoLineage']
+            clade = variant_props['NextstrainClade']
+            who_label = variant_props['WhoLabel']
+            query = ""
+            if pango and len(pango) > 0:
+                query = f"?pangoLineage={pango}*"
+            elif clade and len(clade) > 0:
+                query = f"?nextstrainClade={clade}+({who_label})"
+            else:
+                print("Variant has neither pango nor clade, check out mapping.csv!")
+                continue
+
+            print(f"Fetching data for {query}")
+            r = requests.get(f'https://lapis.cov-spectrum.org/open/v1/sample/nuc-mutations{query}&minProportion=0.05')
             result = r.json()
             if len(result['errors']):
                 print("Errors occured while querying cov-spectrum.org:")
                 for e in result['errors']:
                     print("    " + e)
 
-            the_map[clade] = result['data']
+            variant = variant_props.copy()
+            variant['mutations'] = result['data'];
+
+            names = [who_label, pango, clade]
+            names = [n for n in names if n is not None and len(n.strip()) > 0]
+            variant['name'] = " / ".join(names)
+          
+            the_list.append(variant)
 
         props = {
-            "schemaVersion": "s2r 0.0.1",
-            "comment": "File format is inspired by Nextstrains virus_properties, but evolved to be more like cov-spectrum API.",
-            "nucMutLabelMap": {},
-            'nucMutLabelMapReverse': the_map
+            "schemaVersion": "s2r 0.0.2",
+            "comment": "New file format, no longer looks like the original virus_properties.json",
+            'variants': the_list
         }
 
         json.dump(props, jsonfile, indent=4)
         print("Examples written to disk.")
 
-def pretty_name(clade_name):
-    global mappings
-    clade = mappings['by_clade'].get(clade_name)
-    if clade:
-        label = clade.get('WhoLabel')
-        pango = clade.get('PangoLineage')
-        if label and pango:
-            return f"{label} ({pango} / {clade_name})"
-        elif pango:
-            return f"{pango} / {clade_name}"
-        else:
-            return clade_name
-    else:
-        return f"Unknown ({clade_name})"
-
 def read_examples(path):
     with open(path, newline='') as jsonfile:
         props = json.load(jsonfile)
-        assert props['schemaVersion'] == 's2r 0.0.1'
-        sequences = {}
-        for clade, subs in props['nucMutLabelMapReverse'].items():
-            name = clade # TODO get pango-names
+        assert props['schemaVersion'] == 's2r 0.0.2'
+        examples = []
+        for variant in props['variants']:
             subs_dict = dict()
-            for s in subs:
-                # I experimented with different file formats, this code can read different ones
-                if isinstance(s, str):
-                    s = s.strip()
-                else:
-                    if s['proportion'] < args.mutation_threshold:
-                        continue
-                    s = s['mutation'].strip()
-                
-                if len(s) > 0:
-                    sub = parse_sub(s)
+            for m in variant['mutations']:
+                if m['proportion'] < args.mutation_threshold:
+                    continue
+                sub_string = m['mutation'].strip()
+            
+                if len(sub_string) > 0:
+                    sub = parse_sub(sub_string)
                     if (sub.mut != '-' or args.enable_deletions) and sub.mut != '.':
                         subs_dict[sub.coordinate] = sub
-
-            #print(f"Read {name} with subs: {subs_dict}")
-
-            sequences[name] = {
-                'clade': clade,
-                'name': name,
+            example = {
+                'name': variant['name'],
+                'NextstrainClade': variant['NextstrainClade'],
+                'PangoLineage': variant['PangoLineage'],
                 'subs_dict': subs_dict,
                 'subs_list': list(subs_dict.values()),
                 'subs_set': set(subs_dict.values()),
                 'missings': []
             }
-        return sequences
+
+            examples.append(example)
+
+        return examples
 
 class Primer(NamedTuple):
     start: int
@@ -539,13 +539,11 @@ def fixed_len(s, l):
     trunc = s[0:l]
     return trunc.ljust(l)
 
-def show_matches(all_examples, example_names, samples):
+def show_matches(examples, samples):
     ml = args.max_name_length
 
     if args.sort_by_id:
         samples.sort(key = lambda sample: sample['name'][:args.sort_by_id])
-
-    examples = [all_examples[name] for name in example_names]
 
     coords = set()
     for ex in examples:
@@ -727,7 +725,7 @@ def show_matches(all_examples, example_names, samples):
     
     if len(collected_outputs):
 
-        print(f"\n\nPotential recombinants between {example_names}:\n")
+        print(f"\n\nPotential recombinants between {[ex['name'] for ex in examples]}:\n")
    
         ###### SHOW COORDS
 
@@ -831,7 +829,7 @@ def show_matches(all_examples, example_names, samples):
 
         for ex in examples:
             current_color = color_by_name[ex['name']]
-            prunt(fixed_len(pretty_name(ex['name']), ml) + ' ', current_color)
+            prunt(fixed_len(ex['name'], ml) + ' ', current_color)
             for c, coord in enumerate(ordered_coords):
                 if args.add_spaces and c % args.add_spaces == 0:
                     prunt(" ")
@@ -853,12 +851,18 @@ def get_color(color_index):
 def read_mappings(path):
     with open(path, newline='') as csvfile:
         mappings = { 
-            'by_clade': dict()
+            'by_clade': dict(),
+            'by_lineage': dict(),
+            'list': list()
         }
         reader = csv.DictReader(csvfile)
         line_count = 0
         for row in reader:
-            mappings['by_clade'][row['NextstrainClade']] = row
+            if len(row['NextstrainClade']):
+                mappings['by_clade'][row['NextstrainClade']] = row
+            if len(row['PangoLineage']):
+                mappings['by_lineage'][row['PangoLineage']] = row
+            mappings['list'].append(row)
     return mappings
 
 def read_subs(path, delimiter = ',', max_lines = -1):
@@ -904,13 +908,13 @@ def is_missing(coordinate, missings):
     return False
 
 def calculate_relations(examples):
-    for example in examples.values():
+    for example in examples:
         union = set()
-        for other in examples.values():
+        for other in examples:
             if other is not example:
                 union = union | (other['subs_set'])
         example['unique_subs_set'] = example['subs_set'] - union
-        vprint(f"Clade  {pretty_name(example['name'])} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
+        vprint(f"Clade  {example['name']} has {len(example['subs_set'])} mutations, of which {len(example['unique_subs_set'])} are unique.")
 
 class ArgumentAdvancedDefaultsHelpFormatter(argparse.HelpFormatter):
     """In contrast to ArgumentDefaultsHelpFormatter from argparse,

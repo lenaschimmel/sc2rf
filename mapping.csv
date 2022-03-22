@@ -3,8 +3,18 @@ NextstrainClade,PangoLineage,Letter,WhoLabel,Other,WhoClass
 20H,B.1.351,β,Beta,501Y.V2,VOC
 20J,P.1,γ,Gamma,,VOC
 21A,B.1.617.2,δ,Delta,,VOC
-21I,AY (higher),δ,Delta,,VOC
-21J,AY (lower),δ,Delta,,VOC
+21I,,δ,Delta,,VOC
+21J,,δ,Delta,,VOC
+,AY.4,δ,Delta,,VOC
+,AY.103,δ,Delta,,VOC
+,AY.43,δ,Delta,,VOC
+,AY.44,δ,Delta,,VOC
+,AY.122,δ,Delta,,VOC
+,AY.3,δ,Delta,,VOC
+,AY.4.2,δ,Delta,,VOC
+,AY.100,δ,Delta,,VOC
+,AY.25.1,δ,Delta,,VOC
+,AY.25,δ,Delta,,VOC
 21B,B.1.617.1,κ,Kappa,,Former
 21C,B.1.427 / B.1.429,ε,Epsilon,CAL.20C,Former
 21D,B.1.525,η,Eta,,Former
@@ -13,7 +23,7 @@ NextstrainClade,PangoLineage,Letter,WhoLabel,Other,WhoClass
 21H,B.1.621,μ,Mu,,VOI
 21K,BA.1,ο,Omicron,,VOC
 21L,BA.2,ο,Omicron,,VOC
-21BA3,BA.3,ο,Omicron,(Not a Nextstrain real clade),VOC
+,BA.3,ο,Omicron,,VOC
 21M,B.1.1.529,ο,Omicron,Parental lineage,VOC
 20E,B.1.177,,,EU1,
 20B/S:732A,B.1.1.519,,,,

@@ -86,11 +86,12 @@ optional arguments:
                         recombinant. (default: 1-4)
 
   --clades [CLADES [CLADES ...]], -c [CLADES [CLADES ...]]
-                        List of clades which are considered as
-                        potential parents. Use Nextclade names,
-                        i.e. "21A". Also accepts "all". (default:
-                        ['20I', '20H', '20J', '21A', '21K',
-                        '21L', '21BA3'])
+                        List of variants which are considered as
+                        potential parents. Use Nextstrain clades
+                        (like "21B"), or Pango Lineages (like
+                        "B.1.617.1") or both. Also accepts "all".
+                        (default: ['20I', '20H', '20J', '21I',
+                        '21J', 'BA.1', 'BA.2', 'BA.3'])
 
   --unique NUM, -u NUM  Minimum of substitutions in a sample
                         which are unique to a potential parent

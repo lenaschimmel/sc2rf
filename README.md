@@ -34,6 +34,8 @@ Then call:
 sc2rf.py <your_filename.fasta>
 ```
 
+If you just need some fasta files for testing, you can search the [pango-lineage proposals](https://github.com/cov-lineages/pango-designation/issues) for recombinant issues with fasta-files, or take some files from [my shared-sequences repository](https://github.com/lenaschimmel/shared-sequences), which might not contain any actual recombinants, but hundreds of sequences that look like they were!
+
 ## No output / some sequences not shown
 By default, a lot filters are active to show only the likely recombinants, so that you can input 10000s of sequences and just get output for the interesting ones. If you want, you can disable all filters like that, which is only recommended for small input files with less than 100 sequences:
 
@@ -190,6 +192,8 @@ Only positive numbers are supported.
 
 ## Interpreting the output
 _To be written..._
+
+There already is a short [Twitter thread](https://twitter.com/LenaSchimmel/status/1506768971931996162) which explains the basics.
 
 ## Source material attribution
  * `virus_properties.json` contains data from [LAPIS / cov-spectrum](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).

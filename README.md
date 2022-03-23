@@ -1,24 +1,27 @@
-# What's this?
-This program can search genome sequences of SARS-CoV-2 for potential recombinants - new virus lineages that have (partial) genes from more than one parent lineage.
+## Sc2rf - SARS-Cov-2 Recombinant Finder
+_Pronounced: Scarf_
 
-# Is it already usable? 
+## What's this?
+Sc2rf can search genome sequences of SARS-CoV-2 for potential recombinants - new virus lineages that have (partial) genes from more than one parent lineage.
+
+## Is it already usable? 
 **This is a very young project, started on March 5th, 2022. As such, proceed with care. Results may be wrong or misleading, and with every update, anything can still change a lot.**
 
-Anyway, I'm happy that scientists are already seeing benefits from this tool and using it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
+Anyway, I'm happy that scientists are already seeing benefits from Sc2rf and using it to prepare lineage proposals for [cov-lineages/pango-designation](https://github.com/cov-lineages/pango-designation/issues).
 
-Though I already have a lot of ideas and plans for this (see at the bottom of this document), I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel)!
+Though I already have a lot of ideas and plans for Sc2rf (see at the bottom of this document), I'm very open for suggestions and feature requests. Please write an [issue](https://github.com/lenaschimmel/sarscov2recombinants/issues), start a [discussion](https://github.com/lenaschimmel/sarscov2recombinants/discussions) or get in touch via [mail](mailto:mail@lenaschimmel.de) or [twitter](https://twitter.com/LenaSchimmel)!
 
-# Example output
-![Screenshot of the terminal output of this program](screenshot-no-deletions.png)
+## Example output
+![Screenshot of the terminal output of Sc2rf](screenshot-no-deletions.png)
 
-# Requirements and Installation
+## Requirements and Installation
 You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
 
 Also, you need a terminal which supports ANSI control sequences to display colored text. On Linux, MacOS, etc. it should probably work. 
 
 On Windows, color support is tricky. On a recent version of Windows 10, it should work, but if it doesn't, install Windows Terminal from [GitHub](https://github.com/Microsoft/Terminal) or [Microsoft Store](https://www.microsoft.com/de-de/p/windows-terminal/9n0dx20hk701?rtc=1&activetab=pivot:overviewtab) and run it from there.
 
-# Basic Usage
+## Basic Usage
 Start with a `.fasta` file with one or more sequences which might contain recombinants. Your sequences have to be aligned to the `reference.fasta`. If they are not, you will get an error message like:
 
 > Sequence hCoV-19/Phantasialand/EFWEFWD not properly aligned, length is 29718 instead of 29903.
@@ -28,35 +31,46 @@ _(For historical reasons, I always used [Nextclade](https://docs.nextstrain.org/
 Then call:
 
 ```
-search_recombinants.py <your_filename.fasta>
+sc2rf.py <your_filename.fasta>
 ```
 
-# Advanced Usage
-You can execute `search_recombinants.py -h` to get excactly this help message:
+## No output / some sequences not shown
+By default, a lot filters are active to show only the likely recombinants, so that you can input 10000s of sequences and just get output for the interesting ones. If you want, you can disable all filters like that, which is only recommended for small input files with less than 100 sequences:
+
+```
+sc2rf.py --parents 1-35 --breakpoints 0-100 \
+--unique 1 --max-ambiguous 10000 <your_filename.fasta>
+```
+
+or even
+
+```
+sc2rf.py --parents 1-35 --breakpoints 0-100 \
+--unique 1 --max-ambiguous 10000 --force-all-parents \
+--clades all <your_filename.fasta>
+```
+
+The meaning of these parameters is described below.
+
+## Advanced Usage
+You can execute `sc2rf.py -h` to get excactly this help message:
 
 <!-- BEGIN_MARKER -->
 ```
-usage: search_recombinants.py [-h]
-                              [--primers [PRIMER [PRIMER ...]]]
-                              [--primer-intervals [INTERVAL [INTERVAL ...]]]
-                              [--parents INTERVAL]
-                              [--breakpoints INTERVAL]
-                              [--clades [CLADES [CLADES ...]]]
-                              [--unique NUM]
-                              [--max-intermission-length NUM]
-                              [--max-intermission-count NUM]
-                              [--max-name-length NUM]
-                              [--max-ambiguous NUM]
-                              [--force-all-parents]
-                              [--select-sequences INTERVAL]
-                              [--enable-deletions]
-                              [--show-private-mutations]
-                              [--rebuild-examples]
-                              [--mutation-threshold NUM]
-                              [--add-spaces [NUM]]
-                              [--sort-by-id [NUM]] [--verbose]
-                              [--ansi]
-                              [input [input ...]]
+usage: sc2rf.py [-h] [--primers [PRIMER ...]]
+                [--primer-intervals [INTERVAL ...]]
+                [--parents INTERVAL] [--breakpoints INTERVAL]
+                [--clades [CLADES ...]] [--unique NUM]
+                [--max-intermission-length NUM]
+                [--max-intermission-count NUM]
+                [--max-name-length NUM] [--max-ambiguous NUM]
+                [--force-all-parents]
+                [--select-sequences INTERVAL]
+                [--enable-deletions] [--show-private-mutations]
+                [--rebuild-examples] [--mutation-threshold NUM]
+                [--add-spaces [NUM]] [--sort-by-id [NUM]]
+                [--verbose] [--ansi]
+                [input ...]
 
 Analyse SARS-CoV-2 sequences for potential, unknown recombinant
 variants.
@@ -68,13 +82,13 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
 
-  --primers [PRIMER [PRIMER ...]]
+  --primers [PRIMER ...]
                         Filenames of primer set(s) to visualize.
                         The .bed formats for ARTIC and EasySeq
                         are recognized and supported. (default:
                         None)
 
-  --primer-intervals [INTERVAL [INTERVAL ...]]
+  --primer-intervals [INTERVAL ...]
                         Coordinate intervals in which to
                         visualize primers. (default: None)
 
@@ -86,7 +100,7 @@ optional arguments:
                         Allowed number of breakpoints in a
                         recombinant. (default: 1-4)
 
-  --clades [CLADES [CLADES ...]], -c [CLADES [CLADES ...]]
+  --clades [CLADES ...], -c [CLADES ...]
                         List of variants which are considered as
                         potential parents. Use Nextstrain clades
                         (like "21B"), or Pango Lineages (like
@@ -172,26 +186,12 @@ Only positive numbers are supported.
 ```
 <!-- END_MARKER -->
 
-# No output / some sequences not shown
-By default, a lot filters are active to show only the likely recombinants, so that you can input 10000s of sequences and just get output for the interesting ones. If you want, you can disable all filters like that, which is only recommended for small input files with less than 100 sequences:
 
-```
-search_recombinants.py --parents 1-35 --breakpoints 0-100 \
---unique 0 --max-ambiguous 10000 <your_filename.fasta>
-```
 
-or even
-
-```
-search_recombinants.py --parents 1-35 --breakpoints 0-100 \
---unique 0 --max-ambiguous 10000 --force-all-parents \
---clades all <your_filename.fasta>
-```
-
-# Interpreting the output
+## Interpreting the output
 _To be written..._
 
-# Source material attribution
+## Source material attribution
  * `virus_properties.json` contains data from [LAPIS / cov-spectrum](https://lapis.cov-spectrum.org/) which uses data from [NCBI GenBank](https://www.ncbi.nlm.nih.gov/genbank/), prepared and hosted by Nextstrain, see [blog post](https://nextstrain.org/blog/2021-07-08-ncov-open-announcement).
  * `reference.fasta` is taken from Nextstrain's [nextclade_data](https://github.com/nextstrain/nextclade_data/tree/master/data/datasets/sars-cov-2/references/MN908947/versions/2022-03-04T12:00:00Z/files), see [NCBI](https://www.ncbi.nlm.nih.gov/nuccore/MN908947) for attribution. 
  * `mapping.csv` is a modified version of the table on the [covariants homepage](https://covariants.org/) by Nextstrain.
@@ -203,7 +203,7 @@ _To be written..._
 
 The initial version of this program was written in cooperation with [@flauschzelle](https://github.com/flauschzelle).
 
-# TODO / IDEAS / PLANS
+## TODO / IDEAS / PLANS
  * [ ] Move these TODOs into actual issues
  * [x] add disclaimer and link to pango-designation
  * [ ] provide a sample file (maybe both `.fasta` and `.csv`, as long as the csv step is still needed)

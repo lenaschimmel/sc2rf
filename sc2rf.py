@@ -8,12 +8,13 @@ import json
 import argparse
 import os
 import requests
+from tqdm import tqdm
 
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
 width_override = None
 
-# I removed "ORF" from the names, because often we only see the first one or two letters of a name, and "ORF" providex no information
+# I removed "ORF" from the names, because often we only see the first one or two letters of a name, and "ORF" provides no information
 genes = {
     '1a': (  266, 13468),
     '1b': (13468, 21555),
@@ -166,7 +167,7 @@ def main():
     match_sets = dict()
 
     vprint("Scanning input for matches against linege definitons...")
-    for sa_name, sa in all_samples.items():
+    for sa_name, sa in tqdm(all_samples.items(), desc="First pass scan"):
         matching_example_indices = []
         if args.force_all_parents:
             matching_example_indices = range(0, len(used_examples))
@@ -187,8 +188,11 @@ def main():
 
     vprint("Done.\nPriniting detailed analysis:\n\n")
 
-    for matching_example_indices, samples in match_sets.items():
-        show_matches([used_examples[i] for i in matching_example_indices], samples)
+    if len(match_sets):
+        for matching_example_indices, samples in match_sets.items():
+            show_matches([used_examples[i] for i in matching_example_indices], samples)
+    else:
+        print("First pass found no potential recombinants, see ")
 
 def update_readme(parser: argparse.ArgumentParser):
     # on wide monitors, github displays up to 90 columns of preformatted text
@@ -463,20 +467,25 @@ def read_fasta(path, index_range):
     sequences = dict()
     index = 0
     current_name = None
-    with open(path, newline='') as fasta:
-        current_sequence = ''
-        for line in fasta:
-            if(line[0] == '>'):
-                if current_name and (not index_range or index_range.matches(index)):
-                    sequences[current_name] = current_sequence
-                index += 1
-                if index_range and index > index_range.max:
-                    return sequences
-                current_sequence = ''
-                current_name = line[1:].strip()
-            else:
-                current_sequence += line.strip().upper()
-        sequences[current_name] = current_sequence
+
+    file_pos = 0
+    with tqdm(total=os.stat(path).st_size, desc="Read " + path, unit_scale=True) as pbar:
+        with open(path, newline='') as fasta:
+            current_sequence = ''
+            for line in fasta:
+                file_pos += len(line)
+                pbar.update(file_pos - pbar.n)
+                if(line[0] == '>'):
+                    if current_name and (not index_range or index_range.matches(index)):
+                        sequences[current_name] = current_sequence
+                    index += 1
+                    if index_range and index > index_range.max:
+                        return sequences
+                    current_sequence = ''
+                    current_name = line[1:].strip()
+                else:
+                    current_sequence += line.strip().upper()
+            sequences[current_name] = current_sequence
 
     return sequences
 
@@ -614,7 +623,7 @@ def show_matches(examples, samples):
 
     last_id = ""
 
-    for sa in samples:
+    for sa in tqdm(samples, desc=f"Second pass scan for {[ex['name'] for ex in examples]}"):
         #current_color = get_color(color_index)
         #color_by_name[sa['name']] = current_color
 
@@ -730,8 +739,9 @@ def show_matches(examples, samples):
             last_id = sa['name']
             collected_outputs.append(output)
     
-    if len(collected_outputs):
-
+    if len(collected_outputs) == 0:
+        print(f"\n\nSecond pass scan found no potential recombinants between {[ex['name'] for ex in examples]}.\n")
+    else:
         print(f"\n\nPotential recombinants between {[ex['name'] for ex in examples]}:\n")
    
         ###### SHOW COORDS

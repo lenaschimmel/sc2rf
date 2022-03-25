@@ -101,6 +101,7 @@ def main():
     parser.add_argument('--verbose', '-v', action='store_true', help='Print some more information, mostly useful for debugging.')
     parser.add_argument('--ansi', action='store_true', help='Use only ASCII characters to be compatible with ansilove.')
     parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--hide-progress', action='store_true', help="Don't show progress bars during long task.")
     
     global args
     args = parser.parse_args()
@@ -167,7 +168,7 @@ def main():
     match_sets = dict()
 
     vprint("Scanning input for matches against linege definitons...")
-    for sa_name, sa in tqdm(all_samples.items(), desc="First pass scan"):
+    for sa_name, sa in my_tqdm(all_samples.items(), desc="First pass scan"):
         matching_example_indices = []
         if args.force_all_parents:
             matching_example_indices = range(0, len(used_examples))
@@ -193,6 +194,9 @@ def main():
             show_matches([used_examples[i] for i in matching_example_indices], samples)
     else:
         print("First pass found no potential recombinants, see ")
+
+def my_tqdm(*margs, **kwargs):
+    return tqdm(*margs, delay=0.1, colour="green", disable=bool(args.hide_progress), **kwargs)
 
 def update_readme(parser: argparse.ArgumentParser):
     # on wide monitors, github displays up to 90 columns of preformatted text
@@ -469,7 +473,7 @@ def read_fasta(path, index_range):
     current_name = None
 
     file_pos = 0
-    with tqdm(total=os.stat(path).st_size, desc="Read " + path, unit_scale=True) as pbar:
+    with my_tqdm(total=os.stat(path).st_size, desc="Read " + path, unit_scale=True) as pbar:
         with open(path, newline='') as fasta:
             current_sequence = ''
             for line in fasta:
@@ -494,7 +498,7 @@ def read_subs_from_fasta(path):
     sequences = dict()
     start_n = -1
     removed_due_to_ambig = 0
-    for name, fasta in fastas.items():
+    for name, fasta in my_tqdm(fastas.items(), desc="Finding mutations in " + path):
         subs_dict = dict()
         missings = list()
         if len(fasta) != len(reference):
@@ -623,7 +627,7 @@ def show_matches(examples, samples):
 
     last_id = ""
 
-    for sa in tqdm(samples, desc=f"Second pass scan for {[ex['name'] for ex in examples]}"):
+    for sa in my_tqdm(samples, desc=f"Second pass scan for {[ex['name'] for ex in examples]}"):
         #current_color = get_color(color_index)
         #color_by_name[sa['name']] = current_color
 

@@ -59,10 +59,10 @@ You can execute `sc2rf.py -h` to get excactly this help message:
 
 <!-- BEGIN_MARKER -->
 ```
-usage: sc2rf.py [-h] [--primers [PRIMER ...]]
-                [--primer-intervals [INTERVAL ...]]
+usage: sc2rf.py [-h] [--primers [PRIMER [PRIMER ...]]]
+                [--primer-intervals [INTERVAL [INTERVAL ...]]]
                 [--parents INTERVAL] [--breakpoints INTERVAL]
-                [--clades [CLADES ...]] [--unique NUM]
+                [--clades [CLADES [CLADES ...]]] [--unique NUM]
                 [--max-intermission-length NUM]
                 [--max-intermission-count NUM]
                 [--max-name-length NUM] [--max-ambiguous NUM]
@@ -71,8 +71,8 @@ usage: sc2rf.py [-h] [--primers [PRIMER ...]]
                 [--enable-deletions] [--show-private-mutations]
                 [--rebuild-examples] [--mutation-threshold NUM]
                 [--add-spaces [NUM]] [--sort-by-id [NUM]]
-                [--verbose] [--ansi]
-                [input ...]
+                [--verbose] [--ansi] [--hide-progress]
+                [input [input ...]]
 
 Analyse SARS-CoV-2 sequences for potential, unknown recombinant
 variants.
@@ -84,13 +84,13 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
 
-  --primers [PRIMER ...]
+  --primers [PRIMER [PRIMER ...]]
                         Filenames of primer set(s) to visualize.
                         The .bed formats for ARTIC and EasySeq
                         are recognized and supported. (default:
                         None)
 
-  --primer-intervals [INTERVAL ...]
+  --primer-intervals [INTERVAL [INTERVAL ...]]
                         Coordinate intervals in which to
                         visualize primers. (default: None)
 
@@ -102,7 +102,7 @@ optional arguments:
                         Allowed number of breakpoints in a
                         recombinant. (default: 1-4)
 
-  --clades [CLADES ...], -c [CLADES ...]
+  --clades [CLADES [CLADES ...]], -c [CLADES [CLADES ...]]
                         List of variants which are considered as
                         potential parents. Use Nextstrain clades
                         (like "21B"), or Pango Lineages (like
@@ -180,6 +180,9 @@ optional arguments:
 
   --ansi                Use only ASCII characters to be
                         compatible with ansilove.
+
+  --hide-progress       Don't show progress bars during long
+                        task.
 
 An Interval can be a single number ("3"), a closed interval
 ("2-5" ) or an open one ("4-" or "-7"). The limits are inclusive.

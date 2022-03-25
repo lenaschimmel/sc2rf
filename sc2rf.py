@@ -865,6 +865,8 @@ def show_matches(examples, samples):
             print(output)
 
         print()
+        cprint("made with Sc2rf - available at https://github.com/lenaschimmel/sc2rf", "white")
+        print()
 
 def get_color(color_index): 
     return colors[color_index % len(colors)]

@@ -155,7 +155,7 @@ def main():
     for path in args.input:
         read_samples = read_subs_from_fasta(path)
         for key, val in read_samples.items():
-            all_samples[key] = val
+            all_samples[key] = val  # deep copy
     vprint("Done.")
 
     global primer_sets
@@ -193,7 +193,9 @@ def main():
             else:
                 match_sets[matching_examples_tup] = [sa]
 
-    vprint("Done.\nPriniting detailed analysis:\n\n")
+    print(match_sets)
+
+    vprint("Done.\nPrinting detailed analysis:\n\n")
 
     if len(match_sets):
         for matching_example_indices, samples in match_sets.items():
@@ -472,7 +474,6 @@ def read_bed(path):
 
                 amplicon.add_primer(primer)
 
-
     return pools
 
 
@@ -558,17 +559,20 @@ def read_subs_from_fasta(path):
 
     return sequences
 
+
 class Sub(NamedTuple):
     ref: str
     coordinate: int
     mut: str
 
+
 def parse_sub(s):
-    if(s[0].isdigit()):
+    if s[0].isdigit():
         coordinate = int(s[0:-1])
         return Sub(reference[coordinate-1], coordinate, s[-1])
     else:
         return Sub(s[0], int(s[1:-1]), s[-1])
+
 
 def prunt(s, color=None):
     if color:
@@ -576,9 +580,11 @@ def prunt(s, color=None):
     else:
         print(s, end="")
 
+
 def fixed_len(s, l):
     trunc = s[0:l]
     return trunc.ljust(l)
+
 
 def show_matches(examples, samples):
     ml = args.max_name_length
@@ -951,7 +957,11 @@ def is_missing(coordinate, missings):
             return True
     return False
 
+
 def calculate_relations(examples):
+    """
+
+    """
     for example in examples:
         union = set()
         for other in examples:
@@ -965,6 +975,7 @@ def calculate_relations(examples):
         if unique_count < 3:
             color = "red"
         vprint(colored(f"Clade  {example['name']} has {len(example['subs_set'])} mutations, of which {unique_count} are unique.", color))
+
 
 class ArgumentAdvancedDefaultsHelpFormatter(argparse.HelpFormatter):
     """In contrast to ArgumentDefaultsHelpFormatter from argparse,

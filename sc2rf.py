@@ -32,7 +32,9 @@ genes = {
     '': (29534, 99999), # probably nothing, but need something to mark the end of N
 }
 
+
 class Interval:
+    """ A closed interval of non-negative integers, e.g., 27 or 28-30 """
     def __init__(self, string):
         # TODO allow multiple separators, see https://stackoverflow.com/questions/1059559/split-strings-into-words-with-multiple-word-boundary-delimiters
         self.original_string = string
@@ -47,6 +49,7 @@ class Interval:
             raise ValueError('invalid interval: ' + string)
 
     def matches(self, num):
+        """ check if num is within closed interval """
         if self.min and num < self.min:
             return False
         if self.max and num > self.max:
@@ -59,6 +62,7 @@ class Interval:
 
 
 def main():
+    """ Command line interface """
     global mappings
     global width_override
     global dot_character
@@ -83,7 +87,7 @@ def main():
     parser.add_argument('--primer-intervals', nargs='*',  metavar='INTERVAL', type=Interval, help='Coordinate intervals in which to visualize primers.')
     parser.add_argument('--parents', '-p', default='2-4', metavar='INTERVAL', type=Interval, help='Allowed number of potential parents of a recombinant.')
     parser.add_argument('--breakpoints', '-b', default='1-4', metavar='INTERVAL', type=Interval, help='Allowed number of breakpoints in a recombinant.')
-    parser.add_argument('--clades', '-c', nargs='*', default=['20I','20H','20J', '21I', '21J', 'BA.1', 'BA.2', 'BA.3'], help='List of variants which are considered as potential parents. Use Nextstrain clades (like "21B"), or Pango Lineages (like "B.1.617.1") or both. Also accepts "all".')
+    parser.add_argument('--clades', '-c', nargs='*', default=['20I', '20H', '20J', '21I', '21J', 'BA.1', 'BA.2', 'BA.3'], help='List of variants which are considered as potential parents. Use Nextstrain clades (like "21B"), or Pango Lineages (like "B.1.617.1") or both. Also accepts "all".')
     parser.add_argument('--unique', '-u', default=2, type=int,  metavar='NUM', help='Minimum of substitutions in a sample which are unique to a potential parent clade, so that the clade will be considered.')
     parser.add_argument('--max-intermission-length', '-l', metavar='NUM', default=2, type=int, help='The maximum length of an intermission in consecutive substitutions. Intermissions are stretches to be ignored when counting breakpoints.')
     parser.add_argument('--max-intermission-count', '-i', metavar='NUM', default=8, type=int, help='The maximum number of intermissions which will be ignored. Surplus intermissions count towards the number of breakpoints.')
@@ -167,7 +171,7 @@ def main():
 
     match_sets = dict()
 
-    vprint("Scanning input for matches against linege definitons...")
+    vprint("Scanning input for matches against lineage definitons...")
     for sa_name, sa in my_tqdm(all_samples.items(), desc="First pass scan"):
         matching_example_indices = []
         if args.force_all_parents:
@@ -175,7 +179,9 @@ def main():
         else:    
             for i, ex in enumerate(used_examples):
                 matches_count = len(sa['subs_set'] & ex['unique_subs_set'])
-                if matches_count >= args.unique: # theoretically > 0 already gives us recombinants, but they are much more likely to be errors or coincidences
+                # theoretically > 0 already gives us recombinants, but they are much
+                # more likely to be errors or coincidences
+                if matches_count >= args.unique:
                     matching_example_indices.append(i) 
 
         matching_examples_tup = tuple(matching_example_indices)
@@ -195,8 +201,10 @@ def main():
     else:
         print("First pass found no potential recombinants, see ")
 
+
 def my_tqdm(*margs, **kwargs):
     return tqdm(*margs, delay=0.1, colour="green", disable=bool(args.hide_progress), **kwargs)
+
 
 def update_readme(parser: argparse.ArgumentParser):
     # on wide monitors, github displays up to 90 columns of preformatted text
@@ -467,7 +475,13 @@ def read_bed(path):
 
     return pools
 
+
 def read_fasta(path, index_range):
+    """
+    :param path:  str, absolute or relative path to FASTA file
+    :param index_range:  Interval, select specific records from FASTA
+    :return:  dict, sequences keyed by header
+    """
     sequences = dict()
     index = 0
     current_name = None
@@ -479,7 +493,7 @@ def read_fasta(path, index_range):
             for line in fasta:
                 file_pos += len(line)
                 pbar.update(file_pos - pbar.n)
-                if(line[0] == '>'):
+                if line[0] == '>':
                     if current_name and (not index_range or index_range.matches(index)):
                         sequences[current_name] = current_sequence
                     index += 1
@@ -493,37 +507,44 @@ def read_fasta(path, index_range):
 
     return sequences
 
+
 def read_subs_from_fasta(path):
+    """
+    Extract substitutions relative to reference genome.
+    :param path:  str, path to input FASTA file
+    :return:  dict, substitutions (as dict, list or set) keyed by genome name
+    """
     fastas = read_fasta(path, args.select_sequences)
     sequences = dict()
-    start_n = -1
+    start_n = -1  # used for tracking runs of Ns or gaps
     removed_due_to_ambig = 0
     for name, fasta in my_tqdm(fastas.items(), desc="Finding mutations in " + path):
-        subs_dict = dict()
-        missings = list()
+        subs_dict = dict()  # substitutions keyed by position
+        missings = list()  # start/end tuples of N's or gaps
         if len(fasta) != len(reference):
             print(f"Sequence {name} not properly aligned, length is {len(fasta)} instead of {len(reference)}.")
         else:
             ambiguous_count = 0
-            for i in range(1, len(reference) + 1):
-                r = reference[i - 1]
-                s = fasta[i - 1]
+            for i, r in enumerate(reference):
+                s = fasta[i]
                 if s == 'N' or s == '-':
                     if start_n == -1:
-                        start_n = i
-                elif start_n >= 0:
-                    missings.append((start_n, i - 1))
-                    start_n = -1
+                        start_n = i  # mark the start of possible run of N's
+                else:
+                    if start_n >= 0:
+                        # we've been tracking a run of N's, this base marks the end
+                        missings.append((start_n, i))  # Python-style (closed, open) interval
+                        start_n = -1
                     
-                if s != 'N' and s != '-' and r != s:
-                    subs_dict[i] = Sub(r, i, s)
+                    if r != s:
+                        subs_dict[i] = Sub(r, i, s)  # nucleotide substitution
 
-                if not s in "AGTCN-":
-                    ambiguous_count += 1
+                if s not in "AGTCN-":
+                    ambiguous_count += 1  # count mixtures
 
             if ambiguous_count <= args.max_ambiguous:
                 sequences[name] = {
-                    'name': name,
+                    'name': name,  # isn't this redundant?
                     'subs_dict': subs_dict,
                     'subs_list': list(subs_dict.values()),
                     'subs_set': set(subs_dict.values()),

@@ -9,6 +9,7 @@ import argparse
 import os
 import requests
 from tqdm import tqdm
+from importlib import resources
 
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
@@ -70,7 +71,7 @@ def main():
     # See https://stackoverflow.com/a/39675059/39946
     os.system('')
 
-    mappings = read_mappings('mapping.csv')
+    mappings = read_mappings(resources.open_text("data", "mapping.csv"))
     
     parser = argparse.ArgumentParser(
         description='Analyse SARS-CoV-2 sequences for potential, unknown recombinant variants.', 
@@ -93,7 +94,7 @@ def main():
     parser.add_argument('--select-sequences', '-s', default='0-999999', metavar='INTERVAL', type=Interval, help='Use only a specific range of input sequences. DOES NOT YET WORK WITH MULTIPLE INPUT FILES.')
     parser.add_argument('--enable-deletions', '-d', action='store_true', help='Include deletions in lineage comparision.')
     parser.add_argument('--show-private-mutations', action='store_true', help='Display mutations which are not in any of the potential parental clades.')
-    parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
+    #parser.add_argument('--rebuild-examples', '-r', action='store_true', help='Rebuild the mutations in examples by querying cov-spectrum.org.')
     parser.add_argument('--mutation-threshold', '-t', metavar='NUM', default=0.75, type=float, help='Consider mutations with a prevalence of at least NUM as mandatory for a clade (range 0.05 - 1.0, default: %(default)s).')
     parser.add_argument('--add-spaces', metavar='NUM', nargs='?', default=0, const=5, type=int, help='Add spaces between every N colums, which makes it easier to keep your eye at a fixed place.')
     parser.add_argument('--sort-by-id', metavar='NUM', nargs='?', default=0, const=999, type=int, help='Sort the input sequences by the ID. If you provide NUM, only the first NUM characters are considered. Useful if this correlates with meaning full meta information, e.g. the sequencing lab.')
@@ -114,12 +115,13 @@ def main():
         print("Readme was updated. Program exits.")
         return
 
-    if args.rebuild_examples:
-        rebuild_examples()
-        if len(args.input) == 0:
-            print("Examples were rebuilt, and no input sequences were provided. Program exits.")
-            return
-    elif len(args.input) == 0:
+    # if args.rebuild_examples:
+    #     rebuild_examples()
+    #     if len(args.input) == 0:
+    #         print("Examples were rebuilt, and no input sequences were provided. Program exits.")
+    #         return
+    # el
+    if len(args.input) == 0:
         print("Input sequences must be provided, except when rebuilding the examples. Use --help for more info. Program exits.")
         return
 
@@ -129,8 +131,8 @@ def main():
 
     global reference
     vprint("Reading reference genome, lineage definitions...")
-    reference = read_fasta('reference.fasta', None)['MN908947 (Wuhan-Hu-1/2019)']
-    all_examples = read_examples('virus_properties.json')
+    reference = read_fasta(resources.open_text("data", "reference.fasta"), None)['MN908947 (Wuhan-Hu-1/2019)']
+    all_examples = read_examples(resources.open_text("data", "virus_properties.json"))
 
     used_examples = []
     if 'all' in args.clades:
@@ -279,8 +281,8 @@ def rebuild_examples():
         json.dump(props, jsonfile, indent=4)
         print("Examples written to disk.")
 
-def read_examples(path):
-    with open(path, newline='') as jsonfile:
+def read_examples(file):
+    with file as jsonfile:
         props = json.load(jsonfile)
         assert props['schemaVersion'] == 's2r 0.0.2'
         examples = []
@@ -467,34 +469,34 @@ def read_bed(path):
 
     return pools
 
-def read_fasta(path, index_range):
+def read_fasta(file, index_range):
     sequences = dict()
     index = 0
     current_name = None
 
     file_pos = 0
-    with my_tqdm(total=os.stat(path).st_size, desc="Read " + path, unit_scale=True) as pbar:
-        with open(path, newline='') as fasta:
-            current_sequence = ''
-            for line in fasta:
-                file_pos += len(line)
-                pbar.update(file_pos - pbar.n)
-                if(line[0] == '>'):
-                    if current_name and (not index_range or index_range.matches(index)):
-                        sequences[current_name] = current_sequence
-                    index += 1
-                    if index_range and index > index_range.max:
-                        return sequences
-                    current_sequence = ''
-                    current_name = line[1:].strip()
-                else:
-                    current_sequence += line.strip().upper()
-            sequences[current_name] = current_sequence
+    #with my_tqdm(total=os.stat(file).st_size, desc="Read " + file, unit_scale=True) as pbar:
+    with file as fasta:
+        current_sequence = ''
+        for line in fasta:
+            file_pos += len(line)
+            #pbar.update(file_pos - pbar.n)
+            if(line[0] == '>'):
+                if current_name and (not index_range or index_range.matches(index)):
+                    sequences[current_name] = current_sequence
+                index += 1
+                if index_range and index > index_range.max:
+                    return sequences
+                current_sequence = ''
+                current_name = line[1:].strip()
+            else:
+                current_sequence += line.strip().upper()
+        sequences[current_name] = current_sequence
 
     return sequences
 
 def read_subs_from_fasta(path):
-    fastas = read_fasta(path, args.select_sequences)
+    fastas = read_fasta(open(path), args.select_sequences)
     sequences = dict()
     start_n = -1
     removed_due_to_ambig = 0
@@ -871,8 +873,8 @@ def show_matches(examples, samples):
 def get_color(color_index): 
     return colors[color_index % len(colors)]
 
-def read_mappings(path):
-    with open(path, newline='') as csvfile:
+def read_mappings(file):
+    with file as csvfile:
         mappings = { 
             'by_clade': dict(),
             'by_lineage': dict(),

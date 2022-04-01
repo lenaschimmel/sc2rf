@@ -483,7 +483,7 @@ def read_fasta(path, index_range):
                     if current_name and (not index_range or index_range.matches(index)):
                         sequences[current_name] = current_sequence
                     index += 1
-                    if index_range and index > index_range.max:
+                    if index_range and index_range.max and index > index_range.max:
                         return sequences
                     current_sequence = ''
                     current_name = line[1:].strip()

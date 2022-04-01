@@ -35,7 +35,7 @@ genes = {
 
 
 class Interval:
-    """ A closed interval of non-negative integers, e.g., 27 or 28-30 """
+    """ An interval of integers, e.g., 27, 27-, -30 or 27-30 """
     def __init__(self, string):
         # TODO allow multiple separators, see https://stackoverflow.com/questions/1059559/split-strings-into-words-with-multiple-word-boundary-delimiters
         self.original_string = string

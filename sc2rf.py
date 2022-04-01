@@ -10,6 +10,7 @@ import os
 import requests
 from tqdm import tqdm
 
+
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
 
 width_override = None
@@ -106,6 +107,7 @@ def main():
     parser.add_argument('--ansi', action='store_true', help='Use only ASCII characters to be compatible with ansilove.')
     parser.add_argument('--update-readme', action='store_true', help=argparse.SUPPRESS)
     parser.add_argument('--hide-progress', action='store_true', help="Don't show progress bars during long task.")
+    parser.add_argument('--csvfile', type=argparse.FileType('w'), help="Path to write results in CSV format.")
     
     global args
     args = parser.parse_args()
@@ -196,8 +198,15 @@ def main():
     vprint("Done.\nPrinting detailed analysis:\n\n")
 
     if len(match_sets):
+        writer = None
+        if args.csvfile:
+            writer = csv.DictWriter(args.csvfile, fieldnames=[
+                'sample', 'examples', 'intermissions', 'breakpoints', 'regions'
+            ])
+            writer.writeheader()
+
         for matching_example_indices, samples in match_sets.items():
-            show_matches([used_examples[i] for i in matching_example_indices], samples)
+            show_matches([used_examples[i] for i in matching_example_indices], samples, writer=writer)
     else:
         print("First pass found no potential recombinants, see ")
 
@@ -287,6 +296,7 @@ def rebuild_examples():
         json.dump(props, jsonfile, indent=4)
         print("Examples written to disk.")
 
+
 def read_examples(path):
     with open(path, newline='') as jsonfile:
         props = json.load(jsonfile)
@@ -317,6 +327,7 @@ def read_examples(path):
 
         return examples
 
+
 class Primer(NamedTuple):
     start: int
     end: int
@@ -324,6 +335,7 @@ class Primer(NamedTuple):
     alt: bool
     name: str
     sequence: str
+
 
 class Amplicon:
     left_primers: list
@@ -584,8 +596,17 @@ def fixed_len(s, l):
     return trunc.ljust(l)
 
 
-def show_matches(examples, samples):
+def show_matches(examples, samples, writer):
+    """
+    Display results to screen
+    :param examples:  list, dict for every variant reference genome with keys:
+                      ['name', 'NextstrainClade', 'PangoLineage', 'subs_dict',
+                      'subs_list', 'subs_set', 'missings', 'unique_subs_set']
+    :param samples:  list, dict for every query genome, same structure as above
+    :param writer:  csv.DictWriter, optional (defaults to None)
+    """
     ml = args.max_name_length
+    examples_str = ','.join([ex['name'] for ex in examples])
 
     if args.sort_by_id:
         samples.sort(key = lambda sample: sample['name'][:args.sort_by_id])
@@ -689,7 +710,7 @@ def show_matches(examples, samples):
                             if prev_definitive_match:
                                 breakpoints += 1
                             if definitives_since_breakpoint:
-                                definitives_count.append((prev_definitive_match,definitives_since_breakpoint))
+                                definitives_count.append((prev_definitive_match, definitives_since_breakpoint))
                             prev_definitive_match = matching_exs[0]
                             definitives_since_breakpoint = 0
                         definitives_since_breakpoint += 1
@@ -767,7 +788,15 @@ def show_matches(examples, samples):
 
             last_id = sa['name']
             collected_outputs.append(output)
-    
+            if writer:
+                writer.writerow({
+                    'sample': last_id,
+                    'examples': examples_str,
+                    'intermissions': num_intermissions,
+                    'breakpoints': num_breakpoints,
+                    'regions': ''
+                })
+
     if len(collected_outputs) == 0:
         print(f"\n\nSecond pass scan found no potential recombinants between {[ex['name'] for ex in examples]}.\n")
     else:

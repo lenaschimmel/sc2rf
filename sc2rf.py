@@ -201,7 +201,7 @@ def main():
         writer = None
         if args.csvfile:
             writer = csv.DictWriter(args.csvfile, fieldnames=[
-                'sample', 'examples', 'intermissions', 'breakpoints', 'regions'
+                'sample', 'examples', 'intermissions', 'breakpoints', 'regions', 'privates'
             ])
             writer.writeheader()
 
@@ -663,14 +663,13 @@ def show_matches(examples, samples, writer):
         color_by_name[ex['name']] = get_color(color_index)
         color_index += 1
 
-    # This method works in a weird way: it pre-constructs the lines for the actual sequences, 
+    # This method works in a weird way: it pre-constructs the lines for the actual sequences,
     # and while it constructs the strings, it decides if they are worth showing at the same time.
     # Then, if at least one such string was collected, it prints the header lines for them, and after that the strings.
 
     ###### SHOW SAMPLES
     current_color = 'grey'
     collected_outputs = []
-
     last_id = ""
 
     for sa in my_tqdm(samples, desc=f"Second pass scan for {[ex['name'] for ex in examples]}"):
@@ -681,6 +680,8 @@ def show_matches(examples, samples, writer):
         breakpoints = 0
         definitives_since_breakpoint = 0
         definitives_count = []
+        regions = []  # for CSV output
+        privates = []
 
         output = ''
 
@@ -704,11 +705,13 @@ def show_matches(examples, samples, writer):
 
                     if(len(matching_exs) == 0): # none of the examples match - private mutation
                         bg = 'on_cyan'
+                        privates.append(sa['subs_dict'].get(coord))
                     elif(len(matching_exs) == 1): # exactly one of the examples match - definite match
                         fg = color_by_name[matching_exs[0]]
                         if matching_exs[0] != prev_definitive_match:
                             if prev_definitive_match:
                                 breakpoints += 1
+                            regions.append((coord, matching_exs[0]))
                             if definitives_since_breakpoint:
                                 definitives_count.append((prev_definitive_match, definitives_since_breakpoint))
                             prev_definitive_match = matching_exs[0]
@@ -738,6 +741,7 @@ def show_matches(examples, samples, writer):
                         if matching_exs[0] != prev_definitive_match:
                             if prev_definitive_match:
                                 breakpoints += 1
+                            regions.append((coord, matching_exs[0]))
                             if definitives_since_breakpoint:
                                 definitives_count.append((prev_definitive_match,definitives_since_breakpoint))
                             prev_definitive_match = matching_exs[0]
@@ -791,10 +795,11 @@ def show_matches(examples, samples, writer):
             if writer:
                 writer.writerow({
                     'sample': last_id,
-                    'examples': examples_str,
+                    'examples': examples_str.replace(' ', ''),
                     'intermissions': num_intermissions,
                     'breakpoints': num_breakpoints,
-                    'regions': ''
+                    'regions': ','.join([f"{co}|{ex.replace(' ', '')}" for co, ex in regions]),
+                    'privates': ','.join([f"{ps.ref}{ps.coordinate}{ps.mut}" for ps in privates])
                 })
 
     if len(collected_outputs) == 0:

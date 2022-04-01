@@ -193,8 +193,6 @@ def main():
             else:
                 match_sets[matching_examples_tup] = [sa]
 
-    print(match_sets)
-
     vprint("Done.\nPrinting detailed analysis:\n\n")
 
     if len(match_sets):
@@ -526,21 +524,21 @@ def read_subs_from_fasta(path):
             print(f"Sequence {name} not properly aligned, length is {len(fasta)} instead of {len(reference)}.")
         else:
             ambiguous_count = 0
-            for i, r in enumerate(reference):
-                s = fasta[i]
+            for i in range(1, len(reference) + 1):
+                r = reference[i - 1]
+                s = fasta[i - 1]
                 if s == 'N' or s == '-':
                     if start_n == -1:
                         start_n = i  # mark the start of possible run of N's
-                else:
-                    if start_n >= 0:
-                        # we've been tracking a run of N's, this base marks the end
-                        missings.append((start_n, i))  # Python-style (closed, open) interval
-                        start_n = -1
+                elif start_n >= 0:
+                    # we've been tracking a run of N's, this base marks the end
+                    missings.append((start_n, i-1))  # Python-style (closed, open) interval
+                    start_n = -1
                     
-                    if r != s:
-                        subs_dict[i] = Sub(r, i, s)  # nucleotide substitution
+                if s != 'N' and s != '-' and r != s:
+                    subs_dict[i] = Sub(r, i, s)  # nucleotide substitution
 
-                if s not in "AGTCN-":
+                if not s in "AGTCN-":
                     ambiguous_count += 1  # count mixtures
 
             if ambiguous_count <= args.max_ambiguous:

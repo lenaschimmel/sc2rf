@@ -142,6 +142,7 @@ def main():
     if 'all' in args.clades:
         used_examples = all_examples
     else:
+        # screen for a subset of examples only
         for example in all_examples:
             if len(example['NextstrainClade']) and example['NextstrainClade'] in args.clades:
                 used_examples.append(example)
@@ -171,6 +172,7 @@ def main():
 
     calculate_relations(used_examples)
 
+    # lists of samples keyed by tuples of example indices
     match_sets = dict()
 
     vprint("Scanning input for matches against lineage definitons...")
@@ -200,9 +202,9 @@ def main():
     if len(match_sets):
         writer = None
         if args.csvfile:
-            writer = csv.DictWriter(args.csvfile, fieldnames=[
-                'sample', 'examples', 'intermissions', 'breakpoints', 'regions', 'privates'
-            ])
+            fieldnames = ['sample', 'examples', 'intermissions', 'breakpoints', 'regions']
+            if args.show_private_mutations: fieldnames.append('privates')
+            writer = csv.DictWriter(args.csvfile, fieldnames=fieldnames)
             writer.writeheader()
 
         for matching_example_indices, samples in match_sets.items():
@@ -606,17 +608,19 @@ def show_matches(examples, samples, writer):
     :param writer:  csv.DictWriter, optional (defaults to None)
     """
     ml = args.max_name_length
-    examples_str = ','.join([ex['name'] for ex in examples])
+    examples_str = ','.join([ex['NextstrainClade'] for ex in examples])
 
     if args.sort_by_id:
         samples.sort(key = lambda sample: sample['name'][:args.sort_by_id])
 
+    # set union of mutations in all example genomes
     coords = set()
     for ex in examples:
         for sub in ex['subs_list']:
             coords.add(sub.coordinate)
 
     if args.show_private_mutations:
+        # append mutations unique to sample genomes
         for sa in samples:
             for sub in sa['subs_list']:
                 coords.add(sub.coordinate)
@@ -660,7 +664,7 @@ def show_matches(examples, samples, writer):
     color_by_name = dict()
     color_index = 0
     for ex in examples:
-        color_by_name[ex['name']] = get_color(color_index)
+        color_by_name[ex['NextstrainClade']] = get_color(color_index)
         color_index += 1
 
     # This method works in a weird way: it pre-constructs the lines for the actual sequences,
@@ -682,6 +686,7 @@ def show_matches(examples, samples, writer):
         definitives_count = []
         regions = []  # for CSV output
         privates = []
+        start_coord = ordered_coords[0]
 
         output = ''
 
@@ -692,69 +697,97 @@ def show_matches(examples, samples, writer):
             if is_missing(coord, sa['missings']):
                 output += colored('N', 'white', attrs=['reverse'])
             else:
-                if(sa['subs_dict'].get(coord)): # sample has sub here
+                if sa['subs_dict'].get(coord):  # sample has sub here
                     matching_exs = []
                     for ex in examples:
                         if ex['subs_dict'].get(coord) and ex['subs_dict'].get(coord).mut == sa['subs_dict'][coord].mut:
-                            matching_exs.append(ex['name'])
+                            matching_exs.append(ex['NextstrainClade'])
 
                     text = sa['subs_dict'][coord].mut
                     fg = 'white'
                     bg = None
-                    attrs=['bold']
+                    attrs = ['bold']
 
-                    if(len(matching_exs) == 0): # none of the examples match - private mutation
+                    if len(matching_exs) == 0:
+                        # none of the examples match - private mutation
                         bg = 'on_cyan'
                         privates.append(sa['subs_dict'].get(coord))
-                    elif(len(matching_exs) == 1): # exactly one of the examples match - definite match
+
+                    elif len(matching_exs) == 1:
+                        # exactly one of the examples match - definite match
                         fg = color_by_name[matching_exs[0]]
-                        if matching_exs[0] != prev_definitive_match:
+                        if matching_exs != prev_definitive_match:
                             if prev_definitive_match:
                                 breakpoints += 1
-                            regions.append((coord, matching_exs[0]))
+                                regions.append((start_coord, last_coord, prev_definitive_match))
+                                start_coord = coord  # start of a new region
+                            # else prev_definitive_match is None, we are at first coord
+
                             if definitives_since_breakpoint:
-                                definitives_count.append((prev_definitive_match, definitives_since_breakpoint))
-                            prev_definitive_match = matching_exs[0]
+                                definitives_count.append((prev_definitive_match[0], definitives_since_breakpoint))
+                            prev_definitive_match = matching_exs
                             definitives_since_breakpoint = 0
                         definitives_since_breakpoint += 1
-                    elif(len(matching_exs) < len(examples)): # more than one, but not all examples match - can't provide proper color
-                         #bg = 'on_blue'
-                         attrs = ['bold', 'underline']
+
+                    elif len(matching_exs) < len(examples):
+                        # more than one, but not all examples match - can't provide proper color
+                        #bg = 'on_blue'
+                        attrs = ['bold', 'underline']
+                        if matching_exs != prev_definitive_match:
+                            regions.append((start_coord, last_coord, prev_definitive_match))
+                            start_coord = coord
                     # else: all examples match
 
                     output += colored(text, fg, bg, attrs=attrs)
-                else: # sample does not have sub here
+
+                else:  # sample does not have sub here
                     matching_exs = []
                     for ex in examples:
                         if not ex['subs_dict'].get(coord):
-                            matching_exs.append(ex['name'])
+                            matching_exs.append(ex['NextstrainClade'])
 
                     text = dot_character
                     fg = 'white'
                     bg = None
                     attrs = []
 
-                    if(len(matching_exs) == 0):  # none of the examples match - private reverse mutation
+                    if len(matching_exs) == 0:
+                        # none of the examples match - private reverse mutation
                         bg = 'on_magenta'
-                    elif(len(matching_exs) == 1): # exactly one of the examples match - definite match
+
+                    elif len(matching_exs) == 1:
+                        # exactly one of the examples match - definite match
                         fg = color_by_name[matching_exs[0]]
-                        if matching_exs[0] != prev_definitive_match:
+                        if matching_exs != prev_definitive_match:
                             if prev_definitive_match:
                                 breakpoints += 1
-                            regions.append((coord, matching_exs[0]))
+                                regions.append((start_coord, last_coord, prev_definitive_match))
+                                start_coord = coord  # start of a new region
+
                             if definitives_since_breakpoint:
-                                definitives_count.append((prev_definitive_match,definitives_since_breakpoint))
-                            prev_definitive_match = matching_exs[0]
+                                definitives_count.append((prev_definitive_match, definitives_since_breakpoint))
+                            prev_definitive_match = matching_exs
                             definitives_since_breakpoint = 0
                         definitives_since_breakpoint += 1
-                    elif(len(matching_exs) < len(examples)): # more than one, but not all examples match - can't provide proper color
-                         #bg = 'on_yellow'
-                         attrs = ['underline']
+
+                    elif len(matching_exs) < len(examples):
+                        # more than one, but not all examples match - can't provide proper color
+                        #bg = 'on_yellow'
+                        attrs = ['underline']
+                        if matching_exs != prev_definitive_match:
+                            regions.append((start_coord, last_coord, prev_definitive_match))
+                            start_coord = coord
                     # else: all examples match (which should not happen, because some example must have a mutation here)
                     
                     output += colored(text, fg, bg, attrs=attrs)
+
+            last_coord = coord  # save current coord before iterating to next
+
+        # output last region
+        regions.append((start_coord, last_coord, prev_definitive_match))
+
         if definitives_since_breakpoint:
-            definitives_count.append((prev_definitive_match,definitives_since_breakpoint))
+            definitives_count.append((prev_definitive_match[0], definitives_since_breakpoint))
 
         # now transform definitive streaks: every sequence like ..., X, S, Y, ... where S is a small numer into ..., (X+Y), ...
 
@@ -793,14 +826,16 @@ def show_matches(examples, samples, writer):
             last_id = sa['name']
             collected_outputs.append(output)
             if writer:
-                writer.writerow({
+                row = {
                     'sample': last_id,
                     'examples': examples_str.replace(' ', ''),
                     'intermissions': num_intermissions,
                     'breakpoints': num_breakpoints,
-                    'regions': ','.join([f"{co}|{ex.replace(' ', '')}" for co, ex in regions]),
-                    'privates': ','.join([f"{ps.ref}{ps.coordinate}{ps.mut}" for ps in privates])
-                })
+                    'regions': ','.join([f"{start}:{stop}|{'&'.join(ex)}" for start, stop, ex in regions])
+                }
+                if args.show_private_mutations:
+                    row.update({'privates': ','.join([f"{ps.ref}{ps.coordinate}{ps.mut}" for ps in privates])})
+                writer.writerow(row)
 
     if len(collected_outputs) == 0:
         print(f"\n\nSecond pass scan found no potential recombinants between {[ex['name'] for ex in examples]}.\n")
@@ -908,7 +943,7 @@ def show_matches(examples, samples, writer):
         ###### SHOW EXAMPLES
 
         for ex in examples:
-            current_color = color_by_name[ex['name']]
+            current_color = color_by_name[ex['NextstrainClade']]
             prunt(fixed_len(ex['name'], ml) + ' ', current_color)
             for c, coord in enumerate(ordered_coords):
                 if args.add_spaces and c % args.add_spaces == 0:

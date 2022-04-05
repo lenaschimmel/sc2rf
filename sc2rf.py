@@ -608,7 +608,7 @@ def show_matches(examples, samples, writer):
     :param writer:  csv.DictWriter, optional (defaults to None)
     """
     ml = args.max_name_length
-    examples_str = ','.join([ex['NextstrainClade'] for ex in examples])
+    examples_str = ','.join([ex['name'] for ex in examples])
 
     if args.sort_by_id:
         samples.sort(key = lambda sample: sample['name'][:args.sort_by_id])
@@ -664,7 +664,7 @@ def show_matches(examples, samples, writer):
     color_by_name = dict()
     color_index = 0
     for ex in examples:
-        color_by_name[ex['NextstrainClade']] = get_color(color_index)
+        color_by_name[ex['name']] = get_color(color_index)
         color_index += 1
 
     # This method works in a weird way: it pre-constructs the lines for the actual sequences,
@@ -701,7 +701,7 @@ def show_matches(examples, samples, writer):
                     matching_exs = []
                     for ex in examples:
                         if ex['subs_dict'].get(coord) and ex['subs_dict'].get(coord).mut == sa['subs_dict'][coord].mut:
-                            matching_exs.append(ex['NextstrainClade'])
+                            matching_exs.append(ex['name'])
 
                     text = sa['subs_dict'][coord].mut
                     fg = 'white'
@@ -744,7 +744,7 @@ def show_matches(examples, samples, writer):
                     matching_exs = []
                     for ex in examples:
                         if not ex['subs_dict'].get(coord):
-                            matching_exs.append(ex['NextstrainClade'])
+                            matching_exs.append(ex['name'])
 
                     text = dot_character
                     fg = 'white'
@@ -943,7 +943,7 @@ def show_matches(examples, samples, writer):
         ###### SHOW EXAMPLES
 
         for ex in examples:
-            current_color = color_by_name[ex['NextstrainClade']]
+            current_color = color_by_name[ex['name']]
             prunt(fixed_len(ex['name'], ml) + ' ', current_color)
             for c, coord in enumerate(ordered_coords):
                 if args.add_spaces and c % args.add_spaces == 0:

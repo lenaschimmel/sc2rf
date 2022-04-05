@@ -687,6 +687,7 @@ def show_matches(examples, samples, writer):
         regions = []  # for CSV output
         privates = []
         start_coord = ordered_coords[0]
+        last_coord = None
 
         output = ''
 

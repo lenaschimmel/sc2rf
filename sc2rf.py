@@ -831,7 +831,8 @@ def show_matches(examples, samples, writer):
                     'examples': examples_str.replace(' ', ''),
                     'intermissions': num_intermissions,
                     'breakpoints': num_breakpoints,
-                    'regions': ','.join([f"{start}:{stop}|{'&'.join(ex)}" for start, stop, ex in regions])
+                    'regions': ','.join([f"{start}:{stop}|{'&'.join(map(lambda x: x.replace(' ', ''), ex))}"
+                                         for start, stop, ex in regions])
                 }
                 if args.show_private_mutations:
                     row.update({'privates': ','.join([f"{ps.ref}{ps.coordinate}{ps.mut}" for ps in privates])})

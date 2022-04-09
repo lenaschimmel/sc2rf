@@ -3,3 +3,12 @@ nextclade-output/
 data
 filter_by_id.mjs
 genemap.gff
+
+
+# generated once we use setup.py
+build
+sc2rf.egg-info
+
+# files that lena did not clean up yet
+test.ansi
+test.csv

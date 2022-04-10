@@ -680,7 +680,7 @@ def show_matches(examples, samples, writer):
         #current_color = get_color(color_index)
         #color_by_name[sa['name']] = current_color
 
-        prev_definitive_match = None
+        prev_definitive_match = []
         breakpoints = 0
         definitives_since_breakpoint = 0
         definitives_count = []
@@ -717,25 +717,28 @@ def show_matches(examples, samples, writer):
                     elif len(matching_exs) == 1:
                         # exactly one of the examples match - definite match
                         fg = color_by_name[matching_exs[0]]
-                        if matching_exs != prev_definitive_match:
-                            if prev_definitive_match:
-                                breakpoints += 1
-                                regions.append((start_coord, last_coord, prev_definitive_match))
-                                start_coord = coord  # start of a new region
-                            # else prev_definitive_match is None, we are at first coord
+                        if matching_exs[0] in prev_definitive_match or len(prev_definitive_match) == 0:
+                            breakpoints += 1
+                            region = (start_coord, last_coord, prev_definitive_match)
+                            print(region)
+                            regions.append(region)
+                            start_coord = coord  # start of a new region
 
                             if definitives_since_breakpoint:
                                 definitives_count.append((prev_definitive_match[0], definitives_since_breakpoint))
                             prev_definitive_match = matching_exs
                             definitives_since_breakpoint = 0
+
                         definitives_since_breakpoint += 1
 
                     elif len(matching_exs) < len(examples):
                         # more than one, but not all examples match - can't provide proper color
                         #bg = 'on_blue'
                         attrs = ['bold', 'underline']
-                        if matching_exs != prev_definitive_match:
-                            regions.append((start_coord, last_coord, prev_definitive_match))
+                        if any(filter(lambda ex: ex in prev_definitive_match, matching_exs)):
+                            region = (start_coord, last_coord, prev_definitive_match)
+                            print(region)
+                            regions.append(region)
                             start_coord = coord
                     # else: all examples match
 
@@ -759,24 +762,28 @@ def show_matches(examples, samples, writer):
                     elif len(matching_exs) == 1:
                         # exactly one of the examples match - definite match
                         fg = color_by_name[matching_exs[0]]
-                        if matching_exs != prev_definitive_match:
-                            if prev_definitive_match:
-                                breakpoints += 1
-                                regions.append((start_coord, last_coord, prev_definitive_match))
-                                start_coord = coord  # start of a new region
+                        if matching_exs[0] in prev_definitive_match or len(prev_definitive_match) == 0:
+                            breakpoints += 1
+                            region = (start_coord, last_coord, prev_definitive_match)
+                            print(region)
+                            regions.append(region)
+                            start_coord = coord  # start of a new region
 
                             if definitives_since_breakpoint:
                                 definitives_count.append((prev_definitive_match, definitives_since_breakpoint))
                             prev_definitive_match = matching_exs
                             definitives_since_breakpoint = 0
+
                         definitives_since_breakpoint += 1
 
                     elif len(matching_exs) < len(examples):
                         # more than one, but not all examples match - can't provide proper color
                         #bg = 'on_yellow'
                         attrs = ['underline']
-                        if matching_exs != prev_definitive_match:
-                            regions.append((start_coord, last_coord, prev_definitive_match))
+                        if any(filter(lambda ex: ex in prev_definitive_match, matching_exs)):
+                            region = (start_coord, last_coord, prev_definitive_match)
+                            print(region)
+                            regions.append(region)
                             start_coord = coord
                     # else: all examples match (which should not happen, because some example must have a mutation here)
                     
@@ -788,7 +795,11 @@ def show_matches(examples, samples, writer):
         regions.append((start_coord, last_coord, prev_definitive_match))
 
         if definitives_since_breakpoint:
-            definitives_count.append((prev_definitive_match[0], definitives_since_breakpoint))
+            try:
+                definitives_count.append((prev_definitive_match[0], definitives_since_breakpoint))
+            except:
+                print(prev_definitive_match)
+                raise
 
         # now transform definitive streaks: every sequence like ..., X, S, Y, ... where S is a small numer into ..., (X+Y), ...
 

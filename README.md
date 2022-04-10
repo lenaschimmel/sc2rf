@@ -59,10 +59,10 @@ You can execute `sc2rf.py -h` to get excactly this help message:
 
 <!-- BEGIN_MARKER -->
 ```
-usage: sc2rf.py [-h] [--primers [PRIMER [PRIMER ...]]]
-                [--primer-intervals [INTERVAL [INTERVAL ...]]]
+usage: sc2rf.py [-h] [--primers [PRIMER ...]]
+                [--primer-intervals [INTERVAL ...]]
                 [--parents INTERVAL] [--breakpoints INTERVAL]
-                [--clades [CLADES [CLADES ...]]] [--unique NUM]
+                [--clades [CLADES ...]] [--unique NUM]
                 [--max-intermission-length NUM]
                 [--max-intermission-count NUM]
                 [--max-name-length NUM] [--max-ambiguous NUM]
@@ -72,7 +72,8 @@ usage: sc2rf.py [-h] [--primers [PRIMER [PRIMER ...]]]
                 [--rebuild-examples] [--mutation-threshold NUM]
                 [--add-spaces [NUM]] [--sort-by-id [NUM]]
                 [--verbose] [--ansi] [--hide-progress]
-                [input [input ...]]
+                [--csvfile CSVFILE]
+                [input ...]
 
 Analyse SARS-CoV-2 sequences for potential, unknown recombinant
 variants.
@@ -84,13 +85,13 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
 
-  --primers [PRIMER [PRIMER ...]]
+  --primers [PRIMER ...]
                         Filenames of primer set(s) to visualize.
                         The .bed formats for ARTIC and EasySeq
                         are recognized and supported. (default:
                         None)
 
-  --primer-intervals [INTERVAL [INTERVAL ...]]
+  --primer-intervals [INTERVAL ...]
                         Coordinate intervals in which to
                         visualize primers. (default: None)
 
@@ -102,7 +103,7 @@ optional arguments:
                         Allowed number of breakpoints in a
                         recombinant. (default: 1-4)
 
-  --clades [CLADES [CLADES ...]], -c [CLADES [CLADES ...]]
+  --clades [CLADES ...], -c [CLADES ...]
                         List of variants which are considered as
                         potential parents. Use Nextstrain clades
                         (like "21B"), or Pango Lineages (like
@@ -183,6 +184,9 @@ optional arguments:
 
   --hide-progress       Don't show progress bars during long
                         task.
+
+  --csvfile CSVFILE     Path to write results in CSV format.
+                        (default: None)
 
 An Interval can be a single number ("3"), a closed interval
 ("2-5" ) or an open one ("4-" or "-7"). The limits are inclusive.

@@ -15,7 +15,7 @@ Though I already have a lot of ideas and plans for Sc2rf (see at the bottom of t
 ![Screenshot of the terminal output of Sc2rf](screenshot-no-deletions.png)
 
 ## Requirements and Installation
-You need at least Python 3.6 and you need to install the requirements first. You might use something like `pip3 install -r requirements.txt` to do that.
+You need at least Python 3.6 and you need to install the requirements first. You might use something like `python3 -m pip install -r requirements.txt` to do that. There's a `setup.py` which you should probably ignore, since it's work in progress and does not work as intented yet.
 
 Also, you need a terminal which supports ANSI control sequences to display colored text. On Linux, MacOS, etc. it should probably work. 
 

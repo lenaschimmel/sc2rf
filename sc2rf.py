@@ -9,6 +9,7 @@ import argparse
 import os
 import requests
 from tqdm import tqdm
+import urllib.parse
 
 
 colors = ['red', 'green', 'blue', 'yellow', 'magenta', 'cyan']
@@ -264,7 +265,9 @@ def rebuild_examples():
             clade = variant_props['NextstrainClade']
             who_label = variant_props['WhoLabel']
             query = ""
-            if pango and len(pango) > 0:
+            if variant_props['Query']:
+                query = f"?variantQuery={urllib.parse.quote_plus(variant_props['Query'])}"
+            elif pango and len(pango) > 0:
                 query = f"?pangoLineage={pango}*"
             elif clade and len(clade) > 0:
                 query = f"?nextstrainClade={clade}+({who_label})"
@@ -273,7 +276,9 @@ def rebuild_examples():
                 continue
 
             print(f"Fetching data for {query}")
-            r = requests.get(f'https://lapis.cov-spectrum.org/open/v1/sample/nuc-mutations{query}&minProportion=0.05')
+            url = f'https://lapis.cov-spectrum.org/gisaid/v1/sample/nuc-mutations{query}&minProportion=0.05'
+            print(f"Url is {url}")
+            r = requests.get(url)
             result = r.json()
             if len(result['errors']):
                 print("Errors occured while querying cov-spectrum.org:")

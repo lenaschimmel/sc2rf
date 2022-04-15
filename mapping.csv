@@ -1,36 +1,38 @@
-NextstrainClade,PangoLineage,Letter,WhoLabel,Other,WhoClass
-20I,B.1.1.7,α,Alpha,VOC 202012/01,VOC
-20H,B.1.351,β,Beta,501Y.V2,VOC
-20J,P.1,γ,Gamma,,VOC
-21A,B.1.617.2,δ,Delta,,VOC
-21I,,δ,Delta,,VOC
-21J,,δ,Delta,,VOC
-,AY.4,δ,Delta,,VOC
-,AY.103,δ,Delta,,VOC
-,AY.43,δ,Delta,,VOC
-,AY.44,δ,Delta,,VOC
-,AY.122,δ,Delta,,VOC
-,AY.3,δ,Delta,,VOC
-,AY.4.2,δ,Delta,,VOC
-,AY.100,δ,Delta,,VOC
-,AY.25.1,δ,Delta,,VOC
-,AY.25,δ,Delta,,VOC
-21B,B.1.617.1,κ,Kappa,,Former
-21C,B.1.427 / B.1.429,ε,Epsilon,CAL.20C,Former
-21D,B.1.525,η,Eta,,Former
-21F,B.1.526,ι,Iota,(Part of Pango lineage),Former
-21G,C.37,λ,Lambda,,VOI
-21H,B.1.621,μ,Mu,,VOI
-21K,BA.1,ο,Omicron,,VOC
-21L,BA.2,ο,Omicron,,VOC
-,BA.3,ο,Omicron,,VOC
-21M,B.1.1.529,ο,Omicron,Parental lineage,VOC
-20E,B.1.177,,,EU1,
-20B/S:732A,B.1.1.519,,,,
-20A/S:126A,B.1.620,,,,
-20A.EU2,B.1.160,,,,
-20A/S:439K,B.1.258,,,,
-20A/S:98F,B.1.221,,,,
-20C/S:80Y,B.1.367,,,,
-20B/S:626S,B.1.1.277,,,,
-20B/S:1122L,B.1.1.302,,,,
+NextstrainClade,PangoLineage,Letter,WhoLabel,Other,WhoClass,Query
+20I,B.1.1.7,α,Alpha,VOC 202012/01,VOC,
+20H,B.1.351,β,Beta,501Y.V2,VOC,
+20J,P.1,γ,Gamma,,VOC,
+21A,B.1.617.2,δ,Delta,,VOC,
+21I,,δ,Delta,,VOC,
+21J,,δ,Delta,,VOC,
+,AY.4,δ,Delta,,VOC,
+,AY.103,δ,Delta,,VOC,
+,AY.43,δ,Delta,,VOC,
+,AY.44,δ,Delta,,VOC,
+,AY.122,δ,Delta,,VOC,
+,AY.3,δ,Delta,,VOC,
+,AY.4.2,δ,Delta,,VOC,
+,AY.100,δ,Delta,,VOC,
+,AY.25.1,δ,Delta,,VOC,
+,AY.25,δ,Delta,,VOC,
+21B,B.1.617.1,κ,Kappa,,Former,
+21C,B.1.427 / B.1.429,ε,Epsilon,CAL.20C,Former,
+21D,B.1.525,η,Eta,,Former,
+21F,B.1.526,ι,Iota,(Part of Pango lineage),Former,
+21G,C.37,λ,Lambda,,VOI,
+21H,B.1.621,μ,Mu,,VOI,
+21K,BA.1,ο,Omicron,,VOC,
+21L,BA.2,ο,Omicron,,VOC,
+,BA.3,ο,Omicron,,VOC,
+,BA.4,ο,Omicron,,VOC,"BA.4* | (BA.2* & 12160A & 9866C & 27788T)"
+,BA.5,ο,Omicron,,VOC,"BA.5* | (BA.2* & 12160A & 9866C & 27259A)"
+21M,B.1.1.529,ο,Omicron,Parental lineage,VOC,
+20E,B.1.177,,,EU1,,
+20B/S:732A,B.1.1.519,,,,,
+20A/S:126A,B.1.620,,,,,
+20A.EU2,B.1.160,,,,,
+20A/S:439K,B.1.258,,,,,
+20A/S:98F,B.1.221,,,,,
+20C/S:80Y,B.1.367,,,,,
+20B/S:626S,B.1.1.277,,,,,
+20B/S:1122L,B.1.1.302,,,,,

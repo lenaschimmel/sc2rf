@@ -241,3 +241,4 @@ The initial version of this program was written in cooperation with [@flauschzel
  * [ ] re-think this whole "intermission" concept
  * [ ] select a single sequence and let the tool refine the choice of parental sequences, not just focusing on commonly known lineages (going up and down in the tree)
  * [ ] use more common terms to describe things (needs feedback from people with actual experience in the field)
+ * [x] Release a version
